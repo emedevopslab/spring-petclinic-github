@@ -25,7 +25,12 @@ pipeline {
                 sh "mvn package -DskipTests=true"
             }
         }
-        stage("Publish to Nexus Repository Manager") {
+        stage("Nexus IQ Policy Check") {
+            steps {
+                nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication('spring-petclinic'), iqStage: 'build', jobCredentialsId: ''
+            }
+        }
+        stage("Nexus Repository Push") {
             steps {
                 script {
                     pom = readMavenPom file: "pom.xml";
