@@ -5,7 +5,7 @@ pipeline {
             NEXUS_VERSION = "nexus3"
             NEXUS_PROTOCOL = "http"
             NEXUS_URL = "10.3.1.6:8081"
-            NEXUS_REPOSITORY = "emerasoft-maven"
+            NEXUS_REPOSITORY = "emerasoft-maven-nexus-repo"
             NEXUS_CREDENTIAL_ID = "sonatype-jenkins-user"
     }
 
