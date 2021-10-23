@@ -15,14 +15,14 @@ pipeline {
                 sh 'mvn clean install -DskipTests'
             }
         }
-        stage("Maven Build") {
-            steps {
-                sh "mvn package -DskipTests=true"
-            }
-        }
         stage('Test') {
             steps {
                 sh 'mvn test'
+            }
+        }
+        stage("Maven Build") {
+            steps {
+                sh "mvn package -DskipTests=true"
             }
         }
         stage("Publish to Nexus Repository Manager") {
