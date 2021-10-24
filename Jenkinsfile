@@ -20,6 +20,11 @@ pipeline {
                 sh 'mvn test'
             }
         }
+        stage('JaCoCo Analysis') {
+            steps {
+                jacoco(execPattern: 'target/jacoco.exec')
+            }
+        }
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('Sonarqube') {
