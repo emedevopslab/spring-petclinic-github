@@ -20,6 +20,9 @@ pipeline {
                 sh 'mvn test'
             }
         }
+        stage('Integration Test') {
+            junit 'test-results.xml'
+        }
         stage('JaCoCo Analysis') {
             steps {
                 jacoco(execPattern: 'target/jacoco.exec')
