@@ -20,7 +20,7 @@ pipeline {
                 sh 'mvn test'
             }
         }
-        stage("Maven Build") {
+        stage("Package") {
             steps {
                 sh "mvn package -DskipTests=true"
             }
