@@ -18,10 +18,8 @@ pipeline {
         stage('Maven Test') {
             steps {
                 sh 'mvn test'
+                junit 'reports/**/*.xml'
             }
-        }
-        stage('Integration Test') {
-            junit 'test-results.xml'
         }
         stage('JaCoCo Analysis') {
             steps {
@@ -83,7 +81,7 @@ pipeline {
     }
     post {
         always {
-            junit allowEmptyResults: true, testResults: '**/test-results/*.xml'
+            junit allowEmptyResults: true, testResults: 'reports/**/*.xml'
         }
     }
 }
