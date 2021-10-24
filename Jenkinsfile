@@ -23,7 +23,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('Sonarqube') {
-                  sh "mvn clean verify sonar:sonar"
+                  sh "mvn clean verify sonar:sonar -Dsonar.login=jenkins -Dsonar.password=jenkins"
                 }
             }
         }
