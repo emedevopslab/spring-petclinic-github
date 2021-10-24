@@ -20,19 +20,21 @@ pipeline {
                 sh 'mvn test'
             }
         }
-        stage("Maven Package") {
-            steps {
-                sh "mvn package -DskipTests=true"
-            }
-        }
         stage('SonarQube Analysis') {
-            withSonarQubeEnv() {
-              sh "mvn clean verify sonar:sonar"
+            steps {
+                withsonarqubeenv() {
+                  sh "mvn clean verify sonar:sonar"
+                }
             }
         }
         stage("Nexus IQ Analysis") {
             steps {
                 nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication('spring-petclinic'), iqStage: 'build', jobCredentialsId: ''
+            }
+        }
+        stage("Maven Package") {
+            steps {
+                sh "mvn package -DskipTests=true"
             }
         }
         stage("Nexus Repository Push") {
