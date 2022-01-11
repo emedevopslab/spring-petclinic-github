@@ -72,6 +72,11 @@
             </exclusion>
         </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>2.13.0</version>
+    </dependency>
 
     <!-- Databases - Uses H2 by default -->
     <dependency>
