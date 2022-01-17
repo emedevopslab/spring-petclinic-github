@@ -21,7 +21,7 @@ build-job:
   stage: Maven Build
   script:
     - echo "Compiling the code..."
-    - sh 'mvn clean install -DskipTests'
+    - sh 'mvn clean install'
     - echo "Compile complete."
   tags:
     - linux
