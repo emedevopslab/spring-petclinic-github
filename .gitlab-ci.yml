@@ -23,6 +23,8 @@ build-job:
     - echo "Compiling the code..."
     - sh 'mvn clean install -DskipTests'
     - echo "Compile complete."
+  tags:
+    - linux
 
 unit-test-job:  
   stage: Maven Test    
