@@ -16,7 +16,7 @@
 image: maven:3.6-jdk-8
 variables:
   MAVEN_CLI_OPTS: "--batch-mode"
-  MAVEN_OPTS: "-Dmaven.artifact.threads=50 -s ci_settings.xml"
+  MAVEN_OPTS: "-Dmaven.artifact.threads=50"
 
 cache:
   paths:
@@ -30,7 +30,7 @@ build-job:
   stage: Maven Build
   script:
     - echo "Compiling the code..."
-    - mvn clean $MAVEN_CLI_OPTS $MAVEN_OPTS deploy -DskipTests
+    - mvn clean $MAVEN_CLI_OPTS $MAVEN_OPTS deploy -DskipTests -s ci_settings.xml
     - echo "Compile complete."
   tags:
     - linux
