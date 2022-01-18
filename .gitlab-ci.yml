@@ -52,3 +52,6 @@ unit-test-job:
     - echo "Unit test complete."
   tags:
     - linux
+
+include:
+  - template: Security/SAST.gitlab-ci.yml
