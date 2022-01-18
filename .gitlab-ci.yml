@@ -16,7 +16,7 @@
 image: maven:3.6-jdk-8
 variables:
   MAVEN_CLI_OPTS: "--batch-mode"
-  MAVEN_OPTS: "-Dmaven.artifact.threads=50"
+  MAVEN_OPTS: "-Dmaven.artifact.threads=50 -s ci_settings.xml"
 
 cache:
   paths:
