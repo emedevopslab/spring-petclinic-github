@@ -21,7 +21,7 @@ variables:
   # when running from the command line.
   # `installAtEnd` and `deployAtEnd` are only effective with recent version of the corresponding plugins.
   MAVEN_CLI_OPTS: "--batch-mode --errors --show-version"
-  SECURE_LOG_LEVEL: error
+  SECURE_LOG_LEVEL: "debug"
   CI_DEBUG_TRACE: "true"
 
 # This template uses jdk8 for verifying and deploying images
@@ -60,8 +60,11 @@ sast:
   stage: test
   artifacts:
     name: sast
-    paths:
-     - gl-sast-report.json
+    paths: [gl-sast-report.json]
     reports:
      sast: gl-sast-report.json
     when: always
+
+spotbugs-sast:
+  variables:
+    FAIL_NEVER: 1
