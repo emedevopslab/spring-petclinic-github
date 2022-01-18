@@ -21,6 +21,7 @@ variables:
   # when running from the command line.
   # `installAtEnd` and `deployAtEnd` are only effective with recent version of the corresponding plugins.
   MAVEN_CLI_OPTS: "--batch-mode --errors --show-version"
+  SECURE_LOG_LEVEL: error
 
 # This template uses jdk8 for verifying and deploying images
 image: maven:3.6-jdk-8
