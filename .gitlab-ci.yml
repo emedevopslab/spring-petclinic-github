@@ -42,8 +42,6 @@ build-job:
     - echo "Compiling the code..."
     - mvn clean $MAVEN_CLI_OPTS $MAVEN_OPTS deploy -DskipTests -Dcheckstyle.skip -s ci_settings.xml
     - echo "Compile complete."
-  tags:
-    - linux
 
 unit-test-job:  
   stage: Maven Test    
@@ -51,8 +49,6 @@ unit-test-job:
     - echo "Running unit tests..."
     - mvn test $MAVEN_CLI_OPTS $MAVEN_OPTS -Dcheckstyle.skip -s ci_settings.xml
     - echo "Unit test complete."
-  tags:
-    - linux
 
 include:
   - template: Security/SAST.gitlab-ci.yml
