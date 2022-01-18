@@ -60,8 +60,7 @@ sast:
   stage: test
   artifacts:
     name: sast
-    paths:
-     - gl-sast-report.json
+    paths: [gl-sast-report.json]
     reports:
      sast: gl-sast-report.json
     when: always
