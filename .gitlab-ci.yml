@@ -22,6 +22,7 @@ variables:
   # `installAtEnd` and `deployAtEnd` are only effective with recent version of the corresponding plugins.
   MAVEN_CLI_OPTS: "--batch-mode --errors --show-version"
   SECURE_LOG_LEVEL: error
+  CI_DEBUG_TRACE: "true"
 
 # This template uses jdk8 for verifying and deploying images
 image: maven:3.6-jdk-8
@@ -31,6 +32,10 @@ image: maven:3.6-jdk-8
 cache:
   paths:
     - .m2/repository
+
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
 
 stages:          
   - Maven Build
@@ -51,6 +56,12 @@ unit-test-job:
     - mvn test $MAVEN_CLI_OPTS $MAVEN_OPTS -Dcheckstyle.skip -s ci_settings.xml
     - echo "Unit test complete."
 
-include:
-  - template: Security/SAST.gitlab-ci.yml
-  - template: Security/Dependency-Scanning.gitlab-ci.yml
+sast:
+  stage: test
+  artifacts:
+    name: sast
+    paths:
+     - gl-sast-report.json
+    reports:
+     sast: gl-sast-report.json
+    when: always
