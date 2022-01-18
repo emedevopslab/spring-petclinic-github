@@ -25,7 +25,7 @@ cache:
 stages:          
   - Maven Build
   - Maven Test 
-  - SAST
+  - Check
 
 build-job:       
   stage: Maven Build
@@ -43,7 +43,8 @@ unit-test-job:
     - sh 'mvn test'
     - echo "Unit test complete."
 
-sast:
-  stage: SAST
-  include:
+.sast:
+  stage: Check
+
+include:
   - template: Security/SAST.gitlab-ci.yml
