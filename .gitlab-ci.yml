@@ -50,3 +50,5 @@ unit-test-job:
     - echo "Running unit tests..."
     - sh 'mvn test'
     - echo "Unit test complete."
+  tags:
+    - linux
