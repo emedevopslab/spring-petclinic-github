@@ -48,7 +48,7 @@ unit-test-job:
   stage: Maven Test    
   script:
     - echo "Running unit tests..."
-    - mvn test
+    - mvn test $MAVEN_CLI_OPTS $MAVEN_OPTS -Dcheckstyle.skip -s ci_settings.xml
     - echo "Unit test complete."
   tags:
     - linux
