@@ -44,6 +44,6 @@ unit-test-job:
     - echo "Unit test complete."
 
 sast:
-  stage: sast
-include:
-- template: Security/SAST.gitlab-ci.yml
+  stage: SAST
+  include:
+  - template: Security/SAST.gitlab-ci.yml
