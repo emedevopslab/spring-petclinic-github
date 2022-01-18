@@ -48,7 +48,7 @@ unit-test-job:
   stage: Maven Test    
   script:
     - echo "Running unit tests..."
-    - sh 'mvn test'
+    - mvn test
     - echo "Unit test complete."
   tags:
     - linux
