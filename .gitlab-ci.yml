@@ -35,6 +35,7 @@ stages:
   - Maven Build
   - Maven Test 
   - test
+  - dast
 
 build-job:       
   stage: Maven Build
@@ -52,3 +53,7 @@ unit-test-job:
 
 include:
   - template: Security/SAST.gitlab-ci.yml
+
+include:
+  - template: DAST.gitlab-ci.yml
+
