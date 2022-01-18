@@ -39,7 +39,7 @@ build-job:
   stage: Maven Build
   script:
     - echo "Compiling the code..."
-    - mvn clean $MAVEN_CLI_OPTS $MAVEN_OPTS deploy -DskipTests -s ci_settings.xml
+    - mvn clean $MAVEN_CLI_OPTS $MAVEN_OPTS deploy -DskipTests -Dcheckstyle.skip -s ci_settings.xml
     - echo "Compile complete."
   tags:
     - linux
