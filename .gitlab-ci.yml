@@ -36,7 +36,7 @@ cache:
 include:
   - template: Security/SAST.gitlab-ci.yml
   - template: Security/Dependency-Scanning.gitlab-ci.yml
-  - template: Jobs/Code-Quality.gitlab-ci.yml
+#  - template: Jobs/Code-Quality.gitlab-ci.yml
 
 stages:          
   - Maven Build
@@ -66,15 +66,15 @@ sast:
      sast: gl-sast-report.json
     when: always
 
-code_quality:
-  stage: test
-  artifacts:
-    name: code_quality
-    paths: [gl-code-quality-report.json]
-    reports:
-     sast: gl-code-quality-report.json
-    when: always
-  allow_failure: true
+#code_quality:
+#  stage: test
+#  artifacts:
+#    name: code_quality
+#    paths: [gl-code-quality-report.json]
+#    reports:
+#     sast: gl-code-quality-report.json
+#    when: always
+#  allow_failure: true
 
 spotbugs-sast:
   variables:
