@@ -67,8 +67,13 @@ sast:
     when: always
 
 code_quality:
+  stage: test
   artifacts:
+    name: code_quality
     paths: [gl-code-quality-report.json]
+    reports:
+     sast: gl-code-quality-report.json
+    when: always
 
 spotbugs-sast:
   variables:
