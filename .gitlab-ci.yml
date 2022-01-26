@@ -23,6 +23,9 @@ variables:
   MAVEN_CLI_OPTS: "--batch-mode --errors --show-version"
   SECURE_LOG_LEVEL: "debug"
   CI_DEBUG_TRACE: "true"
+  CODE_QUALITY_IMAGE: "registry.example.com/codequality-fork:latest"
+
+
 
 # This template uses jdk8 for verifying and deploying images
 image: maven:3.6-jdk-8
