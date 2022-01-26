@@ -23,7 +23,7 @@ variables:
   MAVEN_CLI_OPTS: "--batch-mode --errors --show-version"
   SECURE_LOG_LEVEL: "debug"
   CI_DEBUG_TRACE: "true"
-  CODE_QUALITY_IMAGE: "registry.example.com/codequality-fork:latest"
+  #CODE_QUALITY_IMAGE: "registry.example.com/codequality-fork:latest"
 
 
 
@@ -78,6 +78,8 @@ code_quality:
      sast: gl-code-quality-report.json
     when: always
   allow_failure: true
+  tags:
+    - cq-sans-dind     # Set this job to only run on our new specialized runner
 
 spotbugs-sast:
   variables:
