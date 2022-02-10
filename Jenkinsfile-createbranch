@@ -1,0 +1,12 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('create-branch') {
+            steps {
+                echo params.tipoBranch
+                echo params.nomeBranch
+            }
+        }
+    }
+}
