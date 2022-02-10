@@ -10,9 +10,8 @@ pipeline {
         }
         stage('create-branch')
         { 
-            stdout = sh(script:'git checkout -b $tipoBranch/$nomeBranch',  returnStdout: true)
-            println("GIT add stdout ################ " + stdout + " ####################")
-            sh('git push origin $tipoBranch/$nomeBranch')        
+            sh "git checkout -b $tipoBranch/$nomeBranch"
+            sh "git push origin $tipoBranch/$nomeBranch"      
         }
     }
 }
