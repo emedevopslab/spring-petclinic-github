@@ -10,7 +10,7 @@ pipeline {
         }
         stage('create-branch') { 
             steps {
-                withCredentials([usernamePassword(credentialsId: adeganutti-github-token)]){
+                withCredentials([usernamePassword(credentialsId: 'adeganutti-github-token')]){
                     sh "git checkout -b $tipoBranch/$nomeBranch"
                     sh "git push https://github.com/adeganutti/spring-petclinic-github.git"      
                 }
