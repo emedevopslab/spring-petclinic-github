@@ -8,10 +8,11 @@ pipeline {
                 sh "echo $nomeBranch" 
             }
         }
-        stage('create-branch')
-        { 
-            sh "git checkout -b $tipoBranch/$nomeBranch"
-            sh "git push origin $tipoBranch/$nomeBranch"      
+        stage('create-branch') { 
+            steps {
+                sh "git checkout -b $tipoBranch/$nomeBranch"
+                sh "git push origin $tipoBranch/$nomeBranch"      
+            }
         }
     }
 }
