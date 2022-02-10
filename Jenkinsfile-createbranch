@@ -11,7 +11,7 @@ pipeline {
         stage('create-branch') { 
             steps {
                 sh "git checkout -b $tipoBranch/$nomeBranch"
-                sh "git push origin $tipoBranch/$nomeBranch"      
+                sh "git push https://adeganutti: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@github.com/adeganutti/spring-petclinic-github.git"      
             }
         }
     }
