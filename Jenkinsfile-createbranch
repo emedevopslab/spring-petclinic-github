@@ -2,11 +2,17 @@ pipeline {
     agent any
 
     stages {
-        stage('create-branch') {
+        stage('paramethers') {
             steps {
                 sh "echo $tipoBranch" 
                 sh "echo $nomeBranch" 
             }
+        }
+        stage('create-branch')
+        { 
+            stdout = sh(script:'git checkout -b $tipoBranch/$nomeBranch',  returnStdout: true)
+            println("GIT add stdout ################ " + stdout + " ####################")
+            sh('git push origin $tipoBranch/$nomeBranch')        
         }
     }
 }
