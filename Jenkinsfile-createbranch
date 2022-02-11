@@ -2,8 +2,8 @@ pipeline {
     agent any
     
     environment {
-        GITHUB_USERNAME     = credentials('adeganutti-github-secret-username')
         GITHUB_TOKEN        = credentials('adeganutti-github-secret-token')
+        GITHUB_USERNAME     = credentials('adeganutti-github-secret-username')
         GITHUB_URL          = "github.com/adeganutti/spring-petclinic-github.git"
 
     }
