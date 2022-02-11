@@ -29,7 +29,7 @@ pipeline {
         //    steps {
         //        withCredentials([usernamePassword(credentialsId: 'adeganutti-github-token', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]){
         //            sh "git checkout -b $tipoBranch/$nomeBranch"
-        //            sh "git push https://$USERNAME:$PASSWORD@github.com/adeganutti/spring-petclinic-github.git"      
+        //            sh "git push https://$USERNAME:$PASSWORD@$GITHUB_URL      
         //        }
         //    }
         //}
