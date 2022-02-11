@@ -9,14 +9,19 @@ pipeline {
     stages {
         stage('paramethers') {
             steps {
-                sh "echo $tipoBranch" 
-                sh "echo $nomeBranch" 
+                sh '''
+                    GITHUB_URL = "github.com/adeganutti/spring-petclinic-github.git"
+                    echo $tipoBranch
+                    echo $nomeBranch
+                '''
             }
         }
         stage('create-branch') { 
             steps {
-                sh "git checkout -b $tipoBranch/$nomeBranch"
-                sh "git push https://$GITHUB_USERNAME:$GITHUB_TOKEN@github.com/adeganutti/spring-petclinic-github.git"      
+                sh '''
+                    git checkout -b $tipoBranch/$nomeBranch
+                    git push https://$GITHUB_USERNAME:$GITHUB_TOKEN@GITHUB_URL
+                '''
             }
         }
         //stage('create-branch') { 
