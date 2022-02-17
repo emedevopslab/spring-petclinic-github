@@ -70,26 +70,26 @@ pipeline {
                         echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}";
                     }
 
-                    /*rtUpload (
-                        serverId: 'Artifactory-1',
+                    rtUpload (
+                        serverId: 'artifactory-server-saas',
                         spec: '''{
                               "files": [
                                 {
-                                  "pattern": "bazinga/*froggy*.zip",
-                                  "target": "bazinga-repo/froggy-files/"
+                                  "target": "${filesByGlob[0].path}"
                                 }
                              ]
                         }''',
+//                                  "pattern": "bazinga/*froggy*.zip",
 
                         // Optional - Associate the uploaded files with the following custom build name and build number,
                         // as build artifacts.
                         // If not set, the files will be associated with the default build name and build number (i.e the
                         // the Jenkins job name and number).
-                        buildName: 'holyFrog',
-                        buildNumber: '42',
+                        buildName: 'springpetclinic',
+                        //buildNumber: '42',
                         // Optional - Only if this build is associated with a project in Artifactory, set the project key as follows.
-                        project: 'my-project-key'
-                    )*/
+                        project: 'spc'
+                    )
                 }
             }
         }
