@@ -76,7 +76,7 @@ pipeline {
                               "files": [
                                 {
                                   "pattern": "*.jar",
-                                  "target": "/artifactory/spc-build-info/"
+                                  "target": "libs-release-local"
                                 }
                              ]
                         }''',
