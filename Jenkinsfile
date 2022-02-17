@@ -76,7 +76,7 @@ pipeline {
                               "files": [
                                 {
                                   "pattern": "*.jar",
-                                  "target": "default-maven-local"
+                                  "target": "ui/admin/repositories/local/example-repo-local/"
                                 }
                              ]
                         }''',
