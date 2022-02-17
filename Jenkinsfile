@@ -75,7 +75,7 @@ pipeline {
                         spec: '''{
                               "files": [
                                 {
-                                  "pattern": "*.jar",
+                                  "pattern": "target/*.jar",
                                   "target": "artifactory/example-repo-local/"
                                 }
                              ]
