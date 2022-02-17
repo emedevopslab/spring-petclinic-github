@@ -76,7 +76,7 @@ pipeline {
                               "files": [
                                 {
                                   "pattern": "*.jar",
-                                  "target": "target/spring-petclinic-2.5.0-SNAPSHOT.jar"
+                                  "target": "https://springpetclinictestpro.jfrog.io/artifactory/spc-build-info/"
                                 }
                              ]
                         }''',
