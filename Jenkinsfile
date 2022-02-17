@@ -76,7 +76,7 @@ pipeline {
                               "files": [
                                 {
                                   "pattern": "*.jar",
-                                  "target": "libs-release-local"
+                                  "target": "default-maven-local"
                                 }
                              ]
                         }''',
