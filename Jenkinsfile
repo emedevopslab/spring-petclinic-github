@@ -76,7 +76,7 @@ pipeline {
                               "files": [
                                 {
                                   "pattern": "*.jar",
-                                  "target": "${filesByGlob[0].path}"
+                                  "target": ${filesByGlob[0].path}
                                 }
                              ]
                         }''',
