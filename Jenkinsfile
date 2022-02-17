@@ -15,7 +15,7 @@ pipeline {
                 sh 'mvn clean install -DskipTests'
             }
         }
-        stage('Maven Test') {
+        /*stage('Maven Test') {
             steps {
                 sh 'mvn test'
             }
@@ -36,7 +36,7 @@ pipeline {
             steps {
                 nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication('spring-petclinic'), iqStage: 'build', jobCredentialsId: ''
             }
-        }
+        }*/
         stage("Maven Package") {
             steps {
                 sh "mvn package -DskipTests=true"
@@ -75,11 +75,12 @@ pipeline {
                         spec: '''{
                               "files": [
                                 {
+                                  "pattern": "*.jar",
                                   "target": "${filesByGlob[0].path}"
                                 }
                              ]
                         }''',
-//                                  "pattern": "bazinga/*froggy*.zip",
+//
 
                         // Optional - Associate the uploaded files with the following custom build name and build number,
                         // as build artifacts.
