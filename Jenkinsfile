@@ -76,7 +76,7 @@ pipeline {
                               "files": [
                                 {
                                   "pattern": "*.jar",
-                                  "target": "https://springpetclinictestpro.jfrog.io/artifactory/spc-build-info/"
+                                  "target": "/artifactory/spc-build-info/"
                                 }
                              ]
                         }''',
