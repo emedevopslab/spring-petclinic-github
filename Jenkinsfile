@@ -42,7 +42,29 @@ pipeline {
                 sh "mvn package -DskipTests=true"
             }
         }
-        stage("Nexus Repository Push") {
+
+        stage("Artifactory Repository Push") {
+            steps{
+                script {
+                    rtServer (
+                        id: 'artifactory-server-saas',
+                        url: 'https://springpetclinictestpro.jfrog.io/',
+                        // If you're using username and password:
+                        username: 'jenkins',
+                        password: 'Admin1234',
+                        // If you're using Credentials ID:
+                        //credentialsId: 'ccrreeddeennttiiaall',
+                        // If Jenkins is configured to use an http proxy, you can bypass the proxy when using this Artifactory server:
+                        bypassProxy: true,
+                        // Configure the connection timeout (in seconds).
+                        // The default value (if not configured) is 300 seconds:
+                        timeout: 300
+                    )
+                }
+            }
+        }
+
+        /*stage("Nexus Repository Push") {
             steps {
                 script {
                     pom = readMavenPom file: "pom.xml";
@@ -76,7 +98,7 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/
     }
     post {
         always {
