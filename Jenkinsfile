@@ -76,7 +76,7 @@ pipeline {
                               "files": [
                                 {
                                   "pattern": "*.jar",
-                                  "target": "ui/admin/repositories/local/example-repo-local/"
+                                  "target": "artifactory/example-repo-local/"
                                 }
                              ]
                         }''',
