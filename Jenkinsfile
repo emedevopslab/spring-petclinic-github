@@ -76,7 +76,7 @@ pipeline {
                               "files": [
                                 {
                                   "pattern": "*.jar",
-                                  "target": ${filesByGlob[0].path}
+                                  "target": "target/spring-petclinic-2.5.0-SNAPSHOT.jar"
                                 }
                              ]
                         }''',
