@@ -18,7 +18,7 @@ pipeline {
                 '''
             }
         }
-        stage('create-branch') {
+        stage('merge-branch') {
             steps {
                 sh '''
                     git checkout main
