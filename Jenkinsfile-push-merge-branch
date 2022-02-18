@@ -33,6 +33,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'adeganutti-github-token', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]){
                     sh '''
                         git checkout main
+                        git pull
 
                     '''
                 }
