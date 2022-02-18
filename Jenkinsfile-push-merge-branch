@@ -22,12 +22,10 @@ pipeline {
             steps {
                 sh '''
                     git checkout $tipoBranch/$nomeBranch
-                    git pull
                     git checkout main
-                    git pull
                     git fetch origin
                     git merge $tipoBranch/$nomeBranch
-                    git push --set-upstream $tipoBranch/$nomeBranch
+                    git push --set-upstream origin $tipoBranch/$nomeBranch
         //            git push https://$GITHUB_USERNAME:$GITHUB_TOKEN@$GITHUB_URL
                '''
             }
