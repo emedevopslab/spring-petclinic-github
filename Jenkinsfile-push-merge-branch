@@ -23,7 +23,7 @@ pipeline {
                 sh '''
                     git checkout $tipoBranch/$nomeBranch
                     git checkout main
-                    git fetch remote-name
+                    git fetch origin
                     git merge $tipoBranch/$nomeBranch
                     git push https://$GITHUB_USERNAME:$GITHUB_TOKEN@$GITHUB_URL
                '''
