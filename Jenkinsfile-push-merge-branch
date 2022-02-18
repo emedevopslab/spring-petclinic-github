@@ -35,8 +35,7 @@ pipeline {
                         git checkout $tipoBranch/$nomeBranch
                         git checkout origin/main
                         git merge $tipoBranch/$nomeBranch
-
-
+                        git push --set-upstream origin/main $tipoBranch/$nomeBranch
                     '''
                 }
             }
