@@ -23,7 +23,7 @@ pipeline {
                 sh '''
                     git checkout $tipoBranch/$nomeBranch
                     git checkout main
-                    git pull
+                    git pull https://$USERNAME:$PASSWORD@$GITHUB_URL
 
                '''
             }
