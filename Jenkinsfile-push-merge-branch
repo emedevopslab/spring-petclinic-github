@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+
+    environment {
+        GITHUB_TOKEN        = credentials('adeganutti-github-secret-token')
+        GITHUB_USERNAME     = credentials('adeganutti-github-secret-username')
+        GITHUB_URL          = "github.com/adeganutti/spring-petclinic-github.git"
+
+
+    }
+
+    stages {
+        stage('paramethers') {
+            steps {
+                sh '''
+                    echo $tipoBranch
+                    echo $nomeBranch
+                '''
+            }
+        }
+        stage('create-branch') {
+            steps {
+                sh '''
+                    git checkout main
+                    git merge $tipoBranch/$nomeBranch
+                    git push https://$GITHUB_USERNAME:$GITHUB_TOKEN@$GITHUB_URL
+               '''
+            }
+        }
+        //stage('create-branch') {
+        //    steps {
+        //        withCredentials([usernamePassword(credentialsId: 'adeganutti-github-token', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]){
+        //            sh "git checkout -b $tipoBranch/$nomeBranch"
+        //            sh "git push https://$USERNAME:$PASSWORD@$GITHUB_URL"
+        //        }
+        //    }
+        //}
+    }
+}
