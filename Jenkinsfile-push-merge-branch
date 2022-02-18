@@ -35,7 +35,7 @@ pipeline {
                         git checkout $tipoBranch/$nomeBranch
                         git checkout origin/main
                         git merge $tipoBranch/$nomeBranch
-                        git push origin main
+                        git push
 
                     '''
                 }
