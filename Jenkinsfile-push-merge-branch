@@ -22,6 +22,7 @@ pipeline {
             steps {
                 sh '''
                     git checkout $tipoBranch/$nomeBranch
+                    git pull
                     git checkout main
                     git pull
                     git fetch origin
