@@ -34,6 +34,7 @@ pipeline {
                     sh '''
                         git checkout $tipoBranch/$nomeBranch
                         git merge origin/main
+                        git remote add origin https://github.com/$USERNAME/spring-petclinic-github.git
                         git push -u origin main
                     '''
                 }
