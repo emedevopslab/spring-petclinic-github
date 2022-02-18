@@ -23,7 +23,7 @@ pipeline {
                 sh '''
                     git checkout $tipoBranch/$nomeBranch
                     echo "checkout" $tipoBranch/$nomeBranch
-                    git pull
+                    git pull main $tipoBranch/$nomeBranch
                     echo "git pull su " $tipoBranch/$nomeBranch
                     git checkout main
                     echo "checkout su main"
