@@ -32,8 +32,10 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'adeganutti-github-token', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]){
                     sh '''
+                        git checkout $tipoBranch/$nomeBranch
                         git checkout origin/main
-                        git pull
+                        git merge $tipoBranch/$nomeBranch
+
 
                     '''
                 }
