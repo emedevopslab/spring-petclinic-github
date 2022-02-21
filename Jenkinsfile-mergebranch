@@ -18,25 +18,14 @@ pipeline {
                 '''
             }
         }
-        //stage('merge-branch') {
-        //    steps {
-        //        sh '''
-        //           git checkout $tipoBranch/$nomeBranch
-        //            git checkout main
-        //            git fetch origin maingit push https://$USERNAME:$PASSWORD@$GITHUB_URL"
-        //
-        //       '''
-        //    }
-        //}
+
         stage('merge-branch') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'adeganutti-github-token', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]){
                     sh '''
                         git checkout $tipoBranch/$nomeBranch
                         git merge origin/main
-                        git config --global user.name "adeganutti"
-                        git config --global user.email "andrea.deganutti@profesia.it"
-                       // git remote set-url origin https://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@github.com/adeganutti/spring-petclinic-github.git
+                        git remote set-url origin https://$GITHUB_USERNAME:$GITHUB_TOKEN@$GITHUB_URL
                         git push --set-upstream origin $tipoBranch/$nomeBranch
                     '''
                 }
