@@ -35,7 +35,7 @@ pipeline {
                         git checkout $tipoBranch/$nomeBranch
                         git merge origin/main
                         git remote set-url origin https://$GITHUB_USERNAME:My_G1thub@github.com/$GITHUB_USERNAME/spring-petclinic-github.git
-
+                        git push --set-upstream origin $tipoBranch/$nomeBranch
                     '''
                 }
             }
