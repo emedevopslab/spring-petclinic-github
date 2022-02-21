@@ -34,7 +34,9 @@ pipeline {
                     sh '''
                         git checkout $tipoBranch/$nomeBranch
                         git merge origin/main
-                        git remote set-url origin https://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@github.com/adeganutti/spring-petclinic-github.git
+                        git config --global user.name "adeganutti"
+                        git config --global user.email "andrea.deganutti@profesia.it"
+                       // git remote set-url origin https://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@github.com/adeganutti/spring-petclinic-github.git
                         git push --set-upstream origin $tipoBranch/$nomeBranch
                     '''
                 }
