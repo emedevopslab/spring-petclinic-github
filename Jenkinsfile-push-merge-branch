@@ -24,6 +24,8 @@ pipeline {
         //           git checkout $tipoBranch/$nomeBranch
         //            git checkout main
         //            git fetch origin maingit push https://$USERNAME:$PASSWORD@$GITHUB_URL"
+        //                                git remote add origin/main https://github.com/$USERNAME/spring-petclinic-github.git
+
         //
         //       '''
         //    }
@@ -35,7 +37,7 @@ pipeline {
                         git checkout main
                         git checkout $tipoBranch/$nomeBranch
                         git merge origin/main
-                        git remote add origin/main https://github.com/$USERNAME/spring-petclinic-github.git
+                        git push --set-upstream origin $tipoBranch/$nomeBranch
                     '''
                 }
             }
