@@ -9,6 +9,7 @@ pipeline {
             NEXUS_CREDENTIAL_ID = "sonatype-jenkins-user"
     }
 
+
     stages {
         stage('Maven Build') {
             steps {
@@ -80,7 +81,6 @@ pipeline {
                                 }
                              ]
                         }''',
-//
 
                         // Optional - Associate the uploaded files with the following custom build name and build number,
                         // as build artifacts.
