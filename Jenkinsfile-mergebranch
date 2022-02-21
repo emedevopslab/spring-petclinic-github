@@ -21,15 +21,23 @@ pipeline {
 
         stage('merge-branch') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'adeganutti-github-token', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]){
-                    sh '''
-                        git checkout $tipoBranch/$nomeBranch
-                        git merge origin/main
-                        git remote set-url origin https://$GITHUB_USERNAME:$GITHUB_TOKEN@$GITHUB_URL
-                        git push --set-upstream origin $tipoBranch/$nomeBranch
-                    '''
-                }
+                sh '''
+                    git checkout $tipoBranch/$nomeBranch
+                    git merge origin/main
+                    git remote set-url origin https://$GITHUB_USERNAME:$GITHUB_TOKEN@$GITHUB_URL
+                    git push --set-upstream origin $tipoBranch/$nomeBranch
+                '''
             }
         }
+        //stage('merge-branch') {
+        //    steps {
+        //        withCredentials([usernamePassword(credentialsId: 'adeganutti-github-token', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]){
+        //            sh "git checkout $tipoBranch/$nomeBranch"
+        //            sh "git merge origin/main"
+        //            sh "git remote set-url origin https://$USERNAME:$PASSWORD@$GITHUB_URL"
+        //            sh "git push --set-upstream origin $tipoBranch/$nomeBranch"
+        //        }
+        //    }
+        //}
     }
 }
