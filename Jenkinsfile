@@ -15,7 +15,7 @@ pipeline {
                 sh 'mvn clean install -DskipTests'
             }
         }
-        /*stage('Maven Test') {
+        stage('Maven Test') {
             steps {
                 sh 'mvn test'
             }
@@ -36,7 +36,7 @@ pipeline {
             steps {
                 nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication('spring-petclinic'), iqStage: 'build', jobCredentialsId: ''
             }
-        }*/
+        }
         stage("Maven Package") {
             steps {
                 sh "mvn package -DskipTests=true"
@@ -61,13 +61,13 @@ pipeline {
                         timeout: 300
                     )
 
-                    pom = readMavenPom file: "pom.xml";
-                    filesByGlob = findFiles(glob: "target/*.${pom.packaging}");
+                    pom = readMavenPom file: "pom.xml"
+                    filesByGlob = findFiles(glob: "target/*.${pom.packaging}")
                     echo "${filesByGlob[0].name} ${filesByGlob[0].path} ${filesByGlob[0].directory} ${filesByGlob[0].length} ${filesByGlob[0].lastModified}"
-                    artifactPath = filesByGlob[0].path;
-                    artifactExists = fileExists artifactPath;
+                    artifactPath = filesByGlob[0].path
+                    artifactExists = fileExists artifactPath
                     if(artifactExists) {
-                        echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}";
+                        echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}"
                     }
 
                     rtUpload (
