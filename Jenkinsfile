@@ -9,6 +9,7 @@ pipeline {
             NEXUS_CREDENTIAL_ID = "sonatype-jenkins-user"
     }
 
+
     stages {
         stage('Maven Build') {
             steps {
