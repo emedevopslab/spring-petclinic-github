@@ -20,22 +20,24 @@ pipeline {
                 sh 'mvn test'
             }
         }
-        parallel {
-            stage('JaCoCo Analysis') {
-                steps {
-                    jacoco(execPattern: 'target/jacoco.exec')
-                }
-            }
-            stage('SonarQube Analysis') {
-                steps {
-                    withSonarQubeEnv('Sonarqube') {
-                      sh "mvn clean verify sonar:sonar -Dsonar.login=jenkins -Dsonar.password=jenkins"
+        stage('Analysis Stage') {
+            parallel {
+                stage('JaCoCo Analysis') {
+                    steps {
+                        jacoco(execPattern: 'target/jacoco.exec')
                     }
                 }
-            }
-            stage("Nexus IQ Analysis") {
-                steps {
-                    nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication('spring-petclinic'), iqStage: 'build', jobCredentialsId: ''
+                stage('SonarQube Analysis') {
+                    steps {
+                        withSonarQubeEnv('Sonarqube') {
+                            sh "mvn clean verify sonar:sonar -Dsonar.login=jenkins -Dsonar.password=jenkins"
+                        }
+                    }
+                }
+                stage("Nexus IQ Analysis") {
+                    steps {
+                        nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication('spring-petclinic'), iqStage: 'build', jobCredentialsId: ''
+                    }
                 }
             }
         }
