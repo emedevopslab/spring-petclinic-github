@@ -1,6 +1,6 @@
 services:
   spc:
-    build: spc
-    scale: 2
+    build: .
+    scale: 1
     ports:
       - 8080:8080
