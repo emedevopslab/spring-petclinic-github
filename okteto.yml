@@ -1,8 +1,0 @@
-name: spc
-command: java -jar spring-petclinic.jar
-environment:
-  - FLASK_ENV=development
-sync:
-  - spc:/src
-forward:
-  - 8080:8080
