@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spc
+spec:
+  selector:
+    matchLabels:
+      app: spc
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: spc
+    spec:
+      containers:
+        - name: spc
+          image: okteto.dev/spc:latest
+          ports:
+            - containerPort: 8080
