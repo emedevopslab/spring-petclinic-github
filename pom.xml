@@ -17,6 +17,8 @@
   <properties>
 
     <!-- Generic properties -->
+    <spc.version>1.1</spc.version>
+
     <java.version>1.8</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -130,7 +132,7 @@
   </dependencies>
 
   <build>
-    <finalName>spring-petclinic-2.5.0-SNAPSHOT-1.0</finalName>
+    <finalName>spring-petclinic-2.5.0-SNAPSHOT-${spc.version}</finalName>
     <plugins>
       <plugin>
         <groupId>io.spring.javaformat</groupId>
