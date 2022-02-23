@@ -141,7 +141,7 @@ pipeline {
                 sh "pwd"
                 sh "whoami"
                 sh "echo '$HOME'"
-                sh "export KUBECONFIG=/tmp/okteto-kube.config:${KUBECONFIG:-'$HOME/.kube/config'}"
+                sh "okteto kubeconfig"
                 sh "kubectl rollout restart deployment spc"
             }
         }
