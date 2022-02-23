@@ -138,9 +138,6 @@ pipeline {
         stage("Okteto Deploy") {
             steps {
                 sh "okteto context use https://cloud.okteto.com --token $OKTETO_TOKEN"
-                sh "pwd"
-                sh "whoami"
-                sh "echo '$HOME'"
                 sh "okteto kubeconfig"
                 sh "kubectl rollout restart deployment spc"
             }
