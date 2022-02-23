@@ -7,6 +7,7 @@ pipeline {
             NEXUS_URL = "10.3.1.6:8081"
             NEXUS_REPOSITORY = "emerasoft-maven-nexus-repo"
             NEXUS_CREDENTIAL_ID = "sonatype-jenkins-user"
+            OKTETO_TOKEN = "joXe00ffVhLf6wDadoPatXkvLQrMJ2zpsR3HO20yZSi2GkpX"
     }
 
     stages {
@@ -94,16 +95,16 @@ pipeline {
             }
         }
 
-        /*stage("Nexus Repository Push") {
+        stage("Nexus Repository Push") {
             steps {
                 script {
-                    pom = readMavenPom file: "pom.xml";
-                    filesByGlob = findFiles(glob: "target/*.${pom.packaging}");
+                    pom = readMavenPom file: "pom.xml"
+                    filesByGlob = findFiles(glob: "target/*.${pom.packaging}")
                     echo "${filesByGlob[0].name} ${filesByGlob[0].path} ${filesByGlob[0].directory} ${filesByGlob[0].length} ${filesByGlob[0].lastModified}"
-                    artifactPath = filesByGlob[0].path;
-                    artifactExists = fileExists artifactPath;
+                    artifactPath = filesByGlob[0].path
+                    artifactExists = fileExists artifactPath
                     if(artifactExists) {
-                        echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}";
+                        echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}"
                         nexusArtifactUploader(
                             nexusVersion: NEXUS_VERSION,
                             protocol: NEXUS_PROTOCOL,
@@ -122,13 +123,24 @@ pipeline {
                                 file: "pom.xml",
                                 type: "pom"]
                             ]
-                        );
+                        )
                     } else {
-                        error "*** File: ${artifactPath}, could not be found";
+                        error "*** File: ${artifactPath}, could not be found"
                     }
                 }
             }
-        }*/
+        }
+
+        stage("Okteto Deploy") {
+            steps {
+                sh "okteto context use https://cloud.okteto.com --token $OKTETO_TOKEN"
+                sh "okteto kubeconfig"
+                sh "okteto pipeline destroy -p spring-petclinic-github -w -l info"
+                sh "okteto pipeline deploy -r https://github.com/adeganutti/spring-petclinic-github.git -b main -w -l info"
+                sh "kubectl rollout restart deployment spc"
+            }
+        }
+
     }
     post {
         always {
