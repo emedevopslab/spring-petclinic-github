@@ -7,6 +7,7 @@ pipeline {
             NEXUS_URL = "10.3.1.6:8081"
             NEXUS_REPOSITORY = "emerasoft-maven-nexus-repo"
             NEXUS_CREDENTIAL_ID = "sonatype-jenkins-user"
+            OKTETO_TOKEN = "joXe00ffVhLf6wDadoPatXkvLQrMJ2zpsR3HO20yZSi2GkpX"
     }
 
     stages {
@@ -133,6 +134,14 @@ pipeline {
                 }
             }
         }*/
+
+        stage("Okteto Deploy") {
+            steps {
+                sh "okteto context use https://cloud.okteto.com --token $OKTETO_TOKEN"
+                sh "kubectl"
+            }
+        }
+
     }
     post {
         always {
