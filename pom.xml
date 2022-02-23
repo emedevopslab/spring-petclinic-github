@@ -130,6 +130,7 @@
   </dependencies>
 
   <build>
+    <finalName>spring-petclinic-2.5.0-SNAPSHOT-1.0</finalName>
     <plugins>
       <plugin>
         <groupId>io.spring.javaformat</groupId>
