@@ -16,11 +16,11 @@ pipeline {
                 sh 'mvn clean install -DskipTests'
             }
         }
-        stage('Maven Test') {
+        /*stage('Maven Test') {
             steps {
                 sh 'mvn test'
             }
-        }
+        }*/
         /*stage('Analysis Stage') {
             parallel {
                 stage('JaCoCo Analysis') {
@@ -140,6 +140,7 @@ pipeline {
                 sh "okteto context use https://cloud.okteto.com --token $OKTETO_TOKEN"
                 sh "pwd"
                 sh "whoami"
+                sh "echo '$HOME'"
                 sh "kubectl rollout restart deployment spc"
             }
         }
