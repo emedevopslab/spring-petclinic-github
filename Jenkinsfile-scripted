@@ -12,7 +12,6 @@ node {
         def v = "Hello world"
         checkout scm
         sh "mvn clean install"
-        debug v
     }
 
     stage('Maven Test') {
