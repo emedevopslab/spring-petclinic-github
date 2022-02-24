@@ -1,3 +1,5 @@
+@Library("jenkins-libraries@master")
+
 node {
 
     def NEXUS_VERSION = "nexus3"
@@ -7,8 +9,10 @@ node {
     def NEXUS_CREDENTIAL_ID = "sonatype-jenkins-user"
 
     stage('Maven Build') {
+        def v = "Hello world"
         checkout scm
         sh "mvn clean install"
+        debug v
     }
 
     stage('Maven Test') {
