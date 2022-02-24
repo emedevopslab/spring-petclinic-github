@@ -1,4 +1,4 @@
-@Library("jenkins-libraries@master")
+@Library("jenkins-libraries@main")
 
 node {
 
