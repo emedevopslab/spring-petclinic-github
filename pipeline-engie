@@ -1,0 +1,573 @@
+@Library("jenkins-libraries@master")
+import engie.it.common.slack
+import engie.it.aws.aws_utils
+import engie.it.common.utils
+
+//-------------------------------------------------------------
+//	Properites
+//-------------------------------------------------------------
+
+// Retrieves the configuration from the json file
+
+def getConfig()
+{
+	checkout scm
+	if(params.CONFIGURATION_FILE.endsWith(".json"))
+		return jsonFile(params.CONFIGURATION_FILE)
+	else if(params.CONFIGURATION_FILE.endsWith(".yaml"))
+		return yamlFile(params.CONFIGURATION_FILE)
+	else
+		error "CONFIGURATION_FILE should be a JSON or YAML file."
+}
+
+// Set the git short commit code in the global variables
+
+def set_git_short_commit(key, service, index)
+{
+	def commits = []
+	if(params.ACTION=="DEPLOY")
+		commits = params.GIT_SHORT_COMMIT.tokenize(",")
+	if(params.ACTION=="DEPLOY")
+		v.services[v.services.keySet()[index]].gitCommitCode = commits[index]
+	else
+	{
+		dir(key)
+		{
+			def shortCode = currentShortCommit()
+			if(shortCode != null)
+				v.services[key].gitCommitCode = shortCode
+			else
+				error "Cannot retrieve the git short commit code for service ${key}."
+		}
+	}
+	
+	debug "[${service.code}] set_git_short_commit: gitCommitCode = ${v.services[key].gitCommitCode}"
+}
+
+// Check and validate the input parameters and configurations of the pipeline
+
+def setup()
+{	
+	if(params.CONFIGURATION_FILE == null || params.CONFIGURATION_FILE == "")
+		error "Parameter CONFIGURATION_FILE is required, please include the relative path and with file name in the parameter value."
+	
+	checkout scm
+	def cfg = getConfig()
+	
+	def globalCfg = cfg.Global
+	
+	//Define the global configuration object
+	v = [:]
+	
+	v.ecrRegistryID = globalCfg.ECRRegistryId
+	v.ecsClusterName = globalCfg.ECSClusterName
+	v.gitCredentials = globalCfg.GitCredentials
+	
+	if(params.ACTION == null || (params.ACTION != "BUILD+PUSH" && params.ACTION != "BUILD+PUSH+DEPLOY" && params.ACTION != "DEPLOY"))
+		error "Parameter ACTION is required and should be equal either to 'BUILD+PUSH' or 'BUILD+PUSH+DEPLOY' or 'DEPLOY'."
+	
+	if(params.ACTION == "DEPLOY")
+	{
+		if(params.GIT_SHORT_COMMIT == null || params.GIT_SHORT_COMMIT == "")
+			error "Parameter GIT_SHORT_COMMIT is required for ACTION 'DEPLOY'."
+	}
+	
+	if(params.ENVIRONMENT == null || !(params.ENVIRONMENT in cfg.Environment.keySet()))
+		error "Parameter ENVIRONMENT is required. Supported values: ${cfg.Environment.keySet()}"
+	
+	def envCfg = cfg.Environment[params.ENVIRONMENT]
+	
+	watchers.addAll(envCfg?.Watchers?:[])
+	approvers.addAll(envCfg?.Approvers?:[])
+	
+	v.environment = params.ENVIRONMENT
+	v.gitBranch = params.GIT_BRANCH ?: envCfg.GitBranch
+	v.stackName = envCfg.CFStackName
+	v.awsCredentials = envCfg.AWSCredentials
+	v.envCode = envCfg.Code
+	
+	if(params.SERVICE_NAME == null || !params.SERVICE_NAME.tokenize(",").intersect(cfg.Services.keySet()))
+		error "Parameter SERVICE_NAME is required. Supported values: ${cfg.Services.keySet()}"
+		
+	v.services = [:]
+	
+	for(s in params.SERVICE_NAME.tokenize(","))
+	{
+		v.services.put(s, [:])
+		def svcCfg = cfg.Services[s]
+		v.services[s].gitUrl = svcCfg.GitUrl
+		v.services[s].code = svcCfg.Code
+		v.services[s].cloudFormationTag = svcCfg.CloudFormationTag
+		v.services[s].ecrName = globalCfg.ECRBaseName + svcCfg.Code
+		v.services[s].ecrUrl = globalCfg.ECRBaseUrl + v.services[s].ecrName
+		v.services[s].buildPipelineName = "build/${s}"
+	}
+	
+	debug v
+}
+
+//-------------------------------------------------------------
+//	Utilities
+//-------------------------------------------------------------
+
+def slackInfo(_message)
+{
+	print(_message)
+	if(params.SLACK != null && params.SLACK == "ON")
+		new slack().info(params.SERVICE_NAME, _message)
+}
+
+def slackWarning(_message)
+{
+	print(_message)
+	if(params.SLACK != null && params.SLACK == "ON")
+		new slack().warning(params.SERVICE_NAME, _message)
+}
+
+def slackError(_message)
+{
+	print(_message)
+	if(params.SLACK != null && params.SLACK == "ON")
+		new slack().danger(params.SERVICE_NAME, _message)
+}
+
+def slackOk(_message)
+{
+	print(_message)
+	if(params.SLACK != null && params.SLACK == "ON")
+		new slack().good(params.SERVICE_NAME, _message)
+}
+
+// Defines the wrapper of a closure to be executed for
+// each service in v.services. 
+
+def eachCode(Closure<Void> code)
+{
+	v.services.each{
+		key, value ->
+		def k = key
+		def val = value
+		code(k, val)
+	}
+}
+
+// Defines the wrapper of a parallel stage with failFast=false.
+// For each service in v.services a parallel stage is executed.
+// All exceptions are managed and non-blocking (either with respect
+// to the other stages or the entire pipeline).
+// Property lastStageSuccess is updated for each service after
+// the complete execution of the closure or in case of errors.
+// Usage:
+//
+// stage("Stage X")
+// {
+// 		parallelStage()
+//		{
+//			key, service, index ->
+//
+//			INSERT CODE HERE
+//		}
+// }
+
+def parallelStage(Closure<Void> code)
+{
+	try
+	{
+		def tasks = [:]
+		v.services.eachWithIndex{
+			k, val, i ->
+			def key = k
+			def value = val
+			def index = i
+			def lbl = "${key} [${v.gitBranch}]"
+			tasks[lbl] = {
+				stage(lbl)
+				{
+					try
+					{
+						if(value.lastStageSuccess == false)
+						{
+							debug "[${lbl}] Previous stage was unsuccessful, the current stage will be marked as unsuccessful as well."
+							error "[${lbl}] Last stage unsuccessful."
+						}
+						code(key, value, index)
+						v.services[key].lastStageSuccess = true
+					}
+					catch(e)
+					{
+						catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+					        v.services[key].lastStageSuccess = false
+                            throw e
+                        }
+					}
+					finally
+					{
+						debug "Stage ${lbl} success: ${v.services[key].lastStageSuccess}"
+					}
+				}
+			}
+		}
+		tasks.failFast = false
+		parallel tasks
+	}
+	catch(e){}
+}
+
+//-------------------------------------------------------------
+//	Methods
+//-------------------------------------------------------------
+
+// Checkout the git repo
+
+def checkoutCode(key, service)
+{
+	dir(key)
+	{
+		git url: service.gitUrl, branch: v.gitBranch, credentialsId: v.gitCredentials
+	}
+}
+
+// Retrieve Docker login info from AWS ECR
+
+def dockerLogin()
+{
+	def ecrLoginInfo = aws.EcrGetLoginInfo()
+	if(ecrLoginInfo == null)
+		error "Unable to retrieve ECR login info."
+	
+	def ecrAuth = toBase64("${ecrLoginInfo.username}:${ecrLoginInfo.password}")
+	
+	withCredentials([usernamePassword(credentialsId:"docker-builder-jenkins",passwordVariable:"ARTIFACTORY_CREDS_PSW",usernameVariable:"ARTIFACTORY_CREDS_USR")])
+	{	
+		def artifactoryHost = "docker.artifactory.tools.digital.engie.com"
+		def artifactoryAuth = toBase64("${ARTIFACTORY_CREDS_USR}:${ARTIFACTORY_CREDS_PSW}")
+		
+		v.dockerLoginJson = """{
+								"auths":{
+									"${ecrLoginInfo.host}":{
+										"auth":"${ecrAuth}"
+									},
+									"${artifactoryHost}":{
+										"auth":"${artifactoryAuth}"
+									}
+								}
+							}"""
+		
+		debug v.dockerLoginJson
+	}
+}
+
+def check_last_build(key, service)
+{
+	def buildNumber = null
+	
+	try
+	{
+		def lastBuildNumber = lastSuccessfulBuildNumber(service.buildPipelineName)
+		def lastBuildCommit = lastSuccessfulBuildCommit(service.buildPipelineName)
+		if(lastBuildNumber != null && lastBuildCommit != null)
+		{
+			def lastBuildCommitShort = convertToShortCommit(lastBuildCommit)
+			if(lastBuildCommitShort != null && lastBuildCommitShort == service.gitCommitCode)
+			{
+				def artifacts = lastSuccessfulBuildArtifacts(service.buildPipelineName) ?: []
+				
+				debug artifacts
+				
+				if(artifacts.size() > 0)
+				{
+					buildNumber = lastBuildNumber
+					echo "Version ${service.gitCommitCode} already built in ${service.buildPipelineName} #${lastBuildNumber}."
+				}
+				else
+					echo "Version ${service.gitCommitCode} already built in ${service.buildPipelineName} #${lastBuildNumber}, but no artifacts found."
+			}
+		}
+	}
+	catch(e)
+	{
+		echo "${e}"
+		buildNumber = null
+	}
+	
+	v.services[key].buildNumber = buildNumber
+	v.services[key].needBuild = buildNumber == null
+	
+	debug "[$service.code] check_last_build: buildNumber = ${v.services[key].buildNumber}, needBuild = ${v.services[key].needBuild}"
+}
+
+// Launch the external build job
+
+def build(key, service)
+{
+	def b = build job: service.buildPipelineName, propagate: true, wait: true, parameters: [string(name: 'GIT_BRANCH', value: v.gitBranch)]
+	v.services[key].buildNumber = b.number
+}
+
+// Use Kaniko to build and push on ECR the Docker image
+
+def build_push(key, service)
+{
+	dir(key)
+	{
+		echo "Trying to retrieve artifacts from build ${service.buildNumber} of job ${service.buildPipelineName}..."
+		copyArtifacts projectName: service.buildPipelineName, selector: specific("${service.buildNumber}"), flatten: true, filter: "**/*.jar"
+		
+		def exists = fileExists "Dockerfile"
+		if(!exists)
+			error "ERROR: you must provide a valid Dockerfile in the project folder."
+		
+		//Execute build.sh script before building the Docker image
+		exists = fileExists "build.sh"
+		if(exists)
+		{
+			sh "chmod a+x build.sh"
+			sh "./build.sh"
+		}
+		
+		echo "Building and pushing container ${service.code}..."
+		container(name: 'kaniko', shell: '/busybox/sh') {
+			sh """#!/busybox/sh
+				echo '${v.dockerLoginJson}' > /kaniko/.docker/config.json         
+				/kaniko/executor -f `pwd`/Dockerfile -c `pwd` --cache=false \
+				--destination=${service.ecrUrl}:${service.gitCommitCode} --verbosity=debug --cleanup
+				"""
+		}
+	}
+}
+
+// Verify if there is already an ECR image with the same git tag on ECR
+// and set the global configuration variable properly.
+
+def check_ecr_image_exists(key, service)
+{
+	v.services[key].needPush = null == aws.EcrGetImageByTag(service.ecrName, service.gitCommitCode, v.ecrRegistryID)
+	
+	debug "[$service.code] check_ecr_image_exists: needPush = ${v.services[key].needPush}"
+}
+
+// Verify if the currently released image on ClouFormation has the same git tag
+// and set the global configuration variable properly.
+
+def check_stack_update_needed(key, service)
+{
+	def cfParam = aws.CfGetStackParameter(v.stackName, service.cloudFormationTag)
+	v.services[key].needDeploy = cfParam == null || cfParam.ParameterValue != service.gitCommitCode
+	
+	debug "[$service.code] check_stack_update_needed: needDeploy = ${v.services[key].needDeploy}"
+}
+
+//Deploy the new configuration by updating the AWS CloudFormation stack
+
+def update_stack(servicesToUpdate)
+{
+	if(servicesToUpdate.size() > 0)
+	{
+		echo "The following services will be updated on Cloud Formation stack: ${servicesToUpdate.keySet()}"
+		aws.CfUpdateStackParameters(v.stackName, servicesToUpdate.collect{it.value.cloudFormationTag}, servicesToUpdate.collect{it.value.gitCommitCode})
+	}
+	else
+		echo "No service needs to be updated on Cloud Formation stack."
+}
+
+// Block the execution of the pipeline until the AWS CloudFormation stack
+// reaches the UPDATE_COMPLETE state or fails.
+
+def wait_stack_ready()
+{
+	echo "Waiting for stack ${v.stackName} to be ready to update..."
+	aws.CfWaitStackReady(v.stackName)
+}
+
+// Block the execution of the pipeline until the ECS service
+// reaches the stability or fails.
+
+def wait_services_stable(key, service)
+{
+	def serviceName = aws.EcsFindServiceName(v.ecsClusterName, "/${v.stackName}-${service.code}Service-")
+	v.services[key].ecsServiceName = serviceName
+	service.ecsServiceName = serviceName
+	echo "Waiting for service ${service.ecsServiceName} in cluster ${v.ecsClusterName} to be in STABLE state..."
+	aws.EcsWaitServiceStable(service.ecsServiceName, v.ecsClusterName)
+}
+
+def reTagServiceImage(key, service)
+{
+	def epochTime = util.getCurrentEpochTime()
+	def newTag = "${v.envCode}-${epochTime}"
+	aws.EcrAddTagToImage(service.ecrName, service.gitCommitCode, newTag)
+}
+
+//-------------------------------------------------------------
+//	Pipeline
+//-------------------------------------------------------------
+
+node(params.AGENT ?: "agent-aws")
+{
+	aws = new aws_utils()
+	util = new utils()
+	v = null
+	watchers = []
+	approvers = []
+	
+	try
+	{
+		println "Parameters: ${params}"
+		
+		slackInfo("STARTED. See progress <${env.RUN_DISPLAY_URL}|HERE>.")
+
+		setup()
+		
+		def action = params.ACTION
+		def buildNeeded = action.startsWith("BUILD+")
+		def pushNeeded = action.contains("+PUSH")
+		def deployNeeded = action.endsWith("DEPLOY")
+		def servicesToBuild = [:]
+		def servicesToPush = [:]
+		def servicesToDeploy = [:]
+		
+		withAwsCli([credentialsId: "${v.awsCredentials}", defaultRegion: "eu-west-1"])
+		{
+			stage("Setup")
+			{
+				parallelStage()
+				{
+					key, service, index ->
+					if(params.ACTION != "DEPLOY")
+						checkoutCode(key, service)
+					set_git_short_commit(key, service, index)
+					check_last_build(key, service)
+					if(pushNeeded)
+						check_ecr_image_exists(key, service)
+					if(deployNeeded)
+						check_stack_update_needed(key, service)
+				}
+				
+				debug v
+			}
+		
+			servicesToBuild = v.services.findAll { it.value.lastStageSuccess && it.value.needBuild && it.value.needPush }
+			
+			buildNeeded = buildNeeded && servicesToBuild.size() > 0
+			
+			if(!buildNeeded)
+				echo "No service needs to be built."
+			
+			stage("Build Code")
+			{
+				when(buildNeeded)
+				{
+					parallelStage()
+					{
+						key, service, index ->
+						def proceed = servicesToBuild.findAll {it.value.code == service.code}.size() > 0
+						when(proceed)
+						{
+							build(key, service)
+						}
+					}
+					
+					debug v
+				}
+			}
+			
+			servicesToPush = v.services.findAll { it.value.lastStageSuccess && it.value.needPush }
+		
+			pushNeeded = pushNeeded && servicesToPush.size() > 0
+			
+			if(pushNeeded)
+				dockerLogin()
+		}
+		
+		stage("Build&Push Container")
+		{
+			when(pushNeeded)
+			{
+				servicesToPush.each
+				{
+					key, service ->
+					stage("Build&Push ${service.code}")
+					{
+						build_push(key, service)
+					}
+				}
+				
+				/*
+				parallelStage()
+				{
+					key, service, index ->
+					def proceed = servicesToPush.findAll {it.value.code == service.code}.size() > 0
+					when(proceed)
+					{
+						build_push(key, service)
+					}
+				}
+				*/
+				
+				debug v
+			}
+		}
+			
+		withAwsCli([credentialsId: "${v.awsCredentials}", defaultRegion: "eu-west-1"])
+		{	
+			servicesToDeploy = v.services.findAll { it.value.lastStageSuccess && it.value.needDeploy }
+			
+			deployNeeded = deployNeeded && servicesToDeploy.size() > 0
+				
+			stage("Deploy")
+			{
+				when(deployNeeded)
+				{
+					util.checkApproval(approvers, "deploy in ${params.ENVIRONMENT}")
+					aws.EcsCheckClusterAvailable(v.ecsClusterName)
+					wait_stack_ready()
+					update_stack(servicesToDeploy)
+				}
+			}
+			
+			stage("Validate Stack")
+			{
+				when(deployNeeded)
+				{
+					wait_stack_ready()
+				}
+			}
+			
+			stage("Validate Services")
+			{
+				when(deployNeeded)
+				{
+					parallelStage()
+					{
+						key, service, index ->
+						def proceed = servicesToDeploy.findAll {it.value.code == service.code}.size() > 0
+						when(proceed)
+						{
+							wait_services_stable(key, service)
+							reTagServiceImage(key, service)
+						}
+					}
+				}
+			}
+		}
+		
+		if(currentBuild.result == "UNSTABLE")
+		{
+			slackWarning("Unstable build, please check the logs to verify if anything is wrong.")
+			util.sendMail(null, "Unstable build, please check the logs to verify if anything is wrong.", watchers, false, true, true)
+		}
+		else
+			slackOk("COMPLETED.")
+	}
+	catch(InterruptedException ie)
+	{
+		throw ie
+	}
+	catch(err)
+	{
+		if(currentBuild.result != "UNSTABLE")
+			currentBuild.result = "FAILURE"
+		util.sendMail(null, "${err}", watchers, true, true, true)
+		throw err
+	}
+}
