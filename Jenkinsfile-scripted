@@ -13,7 +13,6 @@ node {
 
     stage('Maven Test') {
         sh 'mvn test'
-
     }
 
     stage('JaCoCo Analysis') {
@@ -32,5 +31,53 @@ node {
 
     stage("Maven Package") {
         sh "mvn package -DskipTests=true"
+    }
+
+    stage("Artifactory Repository Push") {
+
+        rtServer (
+            id: 'artifactory-server-saas',
+            url: 'https://springpetclinictestpro.jfrog.io/',
+            // If you're using username and password:
+            username: 'jenkins',
+            password: 'Admin1234',
+            // If you're using Credentials ID:
+            //credentialsId: 'ccrreeddeennttiiaall',
+            // If Jenkins is configured to use an http proxy, you can bypass the proxy when using this Artifactory server:
+            bypassProxy: true,
+            // Configure the connection timeout (in seconds).
+            // The default value (if not configured) is 300 seconds:
+            timeout: 300
+        )
+
+        pom = readMavenPom file: "pom.xml"
+        filesByGlob = findFiles(glob: "target/*.${pom.packaging}")
+        echo "${filesByGlob[0].name} ${filesByGlob[0].path} ${filesByGlob[0].directory} ${filesByGlob[0].length} ${filesByGlob[0].lastModified}"
+        artifactPath = filesByGlob[0].path
+        artifactExists = fileExists artifactPath
+        if(artifactExists) {
+            echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}"
+        }
+
+        rtUpload (
+            serverId: 'artifactory-server-saas',
+            spec: '''{
+                  "files": [
+                    {
+                      "pattern": "target/*.jar",
+                      "target": "artifactory/example-repo-local/"
+                    }
+                 ]
+            }''',
+
+            // Optional - Associate the uploaded files with the following custom build name and build number,
+            // as build artifacts.
+            // If not set, the files will be associated with the default build name and build number (i.e the
+            // the Jenkins job name and number).
+            buildName: 'springpetclinic',
+            //buildNumber: '42',
+            // Optional - Only if this build is associated with a project in Artifactory, set the project key as follows.
+            project: 'spc'
+        )
     }
 }
