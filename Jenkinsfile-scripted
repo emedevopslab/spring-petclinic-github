@@ -13,6 +13,7 @@ node {
 
     stage('Maven Test') {
         sh 'mvn test'
+
     }
 
     stage('JaCoCo Analysis') {
