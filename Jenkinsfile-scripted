@@ -1,5 +1,3 @@
-@Library("jenkins-libraries@master")
-
 node {
 
     def NEXUS_VERSION = "nexus3"
