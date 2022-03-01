@@ -19,7 +19,7 @@ node {
     }
 
     stage('SonarQube Analysis') {
-        sonarqube.call($SONARQUBE_ENV, $SONARQUBE_CREDENTIAL_ID)xs
+        sonarqube.call(SONARQUBE_ENV, SONARQUBE_CREDENTIAL_ID)xs
     }
 
     stage("Maven Package") {
