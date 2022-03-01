@@ -1,6 +1,8 @@
 @Library("jenkins-libraries@main") _
 
 node {
+    def runParallel = true
+
     def SONARQUBE_ENV = "Sonarqube"
     def SONARQUBE_CREDENTIAL_ID = "sonar-jenkins-user"
     def ARTIFACTORY_SERVER_ID = "artifactory-server-saas"
@@ -26,17 +28,12 @@ node {
     }
 
     stage('Analysis Stages') {
-        parallel "Analysis Stages": {
-            stage('JaCoCo Analysis') {
-                jacoco(execPattern: 'target/jacoco.exec')
-            }
-
-            stage('SonarQube Analysis') {
-                sonarqube.call(SONARQUBE_ENV, SONARQUBE_CREDENTIAL_ID)
-            }
-
-            stage('Nexus IQ Analysis') {
-                nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication(NEXUS_APPLICATION), iqStage: 'build', jobCredentialsId: ''
+        analysisStages = analysisStages()
+        if (runParallel) {
+            parallel(analysisStages)
+        } else {
+            for (analysisStage in analysisStages.values()) {
+                analysisStage.call()
             }
         }
     }
@@ -54,6 +51,38 @@ node {
             stage('Nexus Repository Push') {
                 nexusRepository.call(NEXUS_SERVER_URL, NEXUS_REPOSITORY_NAME, NEXUS_VERSION, NEXUS_PROTOCOL, NEXUS_CREDENTIAL_ID)
             }
+        }
+    }
+}
+
+def analysisStages() {
+    def buildParallelMap = [:]
+    buildParallelMap.put(1, jaCoCoAnalysis())
+    buildParallelMap.put(2, sonarQubeAnalysis())
+    buildParallelMap.put(3, nexusIqAnalysis())
+    return buildParallelMap
+}
+
+def jaCoCoAnalysis() {
+    return {
+        stage('JaCoCo Analysis') {
+            jacoco(execPattern: 'target/jacoco.exec')
+        }
+    }
+}
+
+def sonarQubeAnalysis() {
+    return {
+        stage('SonarQube Analysis') {
+            sonarqube.call(SONARQUBE_ENV, SONARQUBE_CREDENTIAL_ID)
+        }
+    }
+}
+
+def nexusIqAnalysis() {
+    return {
+        stage('Nexus IQ Analysis') {
+            nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication(NEXUS_APPLICATION), iqStage: 'build', jobCredentialsId: ''
         }
     }
 }
