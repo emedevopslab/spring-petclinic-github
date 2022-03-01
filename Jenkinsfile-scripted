@@ -1,4 +1,9 @@
+@Library("jenkins-libraries@main") _
+
 node {
+
+    def SONARQUBE_ENV = "sonarqube"
+    def SONARQUBE_CREDENTIAL_ID = "sonar-jenkins-user"
 
     stage('Maven Build') {
         checkout scm
@@ -14,11 +19,7 @@ node {
     }
 
     stage('SonarQube Analysis') {
-        withSonarQubeEnv('Sonarqube') {
-            withCredentials([usernamePassword(credentialsId: 'sonar-jenkins-user', usernameVariable: 'SONAR_USERNAME', passwordVariable: 'SONAR_PASSWORD')]) {
-                sh "mvn clean verify sonar:sonar -Dsonar.login=$SONAR_USERNAME -Dsonar.password=$SONAR_PASSWORD"
-            }
-        }
+        sonarqube.call($SONARQUBE_ENV, $SONARQUBE_CREDENTIAL_ID)xs
     }
 
     stage("Maven Package") {
