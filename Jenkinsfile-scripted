@@ -53,7 +53,7 @@ def jaCoCoAnalysis() {
         stage('JaCoCo Analysis') {
             jacoco(execPattern: 'target/jacoco.exec')
         }
-    } as Object
+    }
 }
 
 def sonarQubeAnalysis(sonarqubeEnv, sonarqubeCredentialId) {
@@ -61,7 +61,7 @@ def sonarQubeAnalysis(sonarqubeEnv, sonarqubeCredentialId) {
         stage('SonarQube Analysis') {
             sonarqube.call(sonarqubeEnv, sonarqubeCredentialId)
         }
-    } as Object
+    }
 }
 
 def nexusIqAnalysis(nexusApplication) {
@@ -69,7 +69,7 @@ def nexusIqAnalysis(nexusApplication) {
         stage('Nexus IQ Analysis') {
             nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication(nexusApplication), iqStage: 'build', jobCredentialsId: ''
         }
-    } as Object
+    }
 }
 
 def artifactoryRepositoryPush(artifactoryServerId, artifactoryServerUrl, artifactoryRepositoryUrl, artifactoryBuildName, artifactoryProject, artifactoryCredentialId) {
@@ -77,7 +77,7 @@ def artifactoryRepositoryPush(artifactoryServerId, artifactoryServerUrl, artifac
         stage('Artifactory Repository Push') {
             artifactory.call(artifactoryServerId, artifactoryServerUrl, artifactoryRepositoryUrl, artifactoryBuildName, artifactoryProject, artifactoryCredentialId)
         }
-    } as Object
+    }
 }
 
 def nexusRepositoryPush(nexusServerUrl, nexusRepositoryName, nexusVersion, nexusProtocol, nexusCredentialId) {
@@ -85,5 +85,5 @@ def nexusRepositoryPush(nexusServerUrl, nexusRepositoryName, nexusVersion, nexus
         stage('Nexus Repository Push') {
             nexusRepository.call(nexusServerUrl, nexusRepositoryName, nexusVersion, nexusProtocol, nexusCredentialId)
         }
-    } as Object
+    }
 }
