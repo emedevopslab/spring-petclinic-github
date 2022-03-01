@@ -17,6 +17,11 @@ def NEXUS_VERSION = "nexus3"
 def NEXUS_PROTOCOL = "http"
 def NEXUS_CREDENTIAL_ID = "sonatype-jenkins-user"
 def NEXUS_APPLICATION = "spring-petclinic"
+def OKTETO_SERVER_URL = "https://cloud.okteto.com"
+def OKTETO_TOKEN = "joXe00ffVhLf6wDadoPatXkvLQrMJ2zpsR3HO20yZSi2GkpX"
+def OKTETO_GITHUB_REPOSITORY_NAME = "spring-petclinic-github"
+def OKTETO_GITHUB_REPOSITORY_URL = "https://github.com/adeganutti/spring-petclinic-github.git"
+def OKTETO_DEPLOYMENT_NAME = "spc"
 
 node {
     stage('Maven Build') {
@@ -46,6 +51,10 @@ node {
         artifactRepositoryStagesMap.put("Nexus Repository Push", nexusRepositoryPush(NEXUS_SERVER_URL, NEXUS_REPOSITORY_NAME, NEXUS_VERSION, NEXUS_PROTOCOL, NEXUS_CREDENTIAL_ID))
         parallelOrSerialStages.call(runParallel, artifactRepositoryStagesMap)
     }
+
+    stage("Deploy") {
+        okteto.call(OKTETO_SERVER_URL, OKTETO_TOKEN, OKTETO_GITHUB_REPOSITORY_NAME, OKTETO_GITHUB_REPOSITORY_URL, OKTETO_DEPLOYMENT_NAME)
+    }
 }
 
 def jaCoCoAnalysis() {
@@ -53,7 +62,7 @@ def jaCoCoAnalysis() {
         stage('JaCoCo Analysis') {
             jacoco(execPattern: 'target/jacoco.exec')
         }
-    }
+    } as Object
 }
 
 def sonarQubeAnalysis(sonarqubeEnv, sonarqubeCredentialId) {
@@ -61,7 +70,7 @@ def sonarQubeAnalysis(sonarqubeEnv, sonarqubeCredentialId) {
         stage('SonarQube Analysis') {
             sonarqube.call(sonarqubeEnv, sonarqubeCredentialId)
         }
-    }
+    } as Object
 }
 
 def nexusIqAnalysis(nexusApplication) {
@@ -69,7 +78,7 @@ def nexusIqAnalysis(nexusApplication) {
         stage('Nexus IQ Analysis') {
             nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication(nexusApplication), iqStage: 'build', jobCredentialsId: ''
         }
-    }
+    } as Object
 }
 
 def artifactoryRepositoryPush(artifactoryServerId, artifactoryServerUrl, artifactoryRepositoryUrl, artifactoryBuildName, artifactoryProject, artifactoryCredentialId) {
@@ -77,7 +86,7 @@ def artifactoryRepositoryPush(artifactoryServerId, artifactoryServerUrl, artifac
         stage('Artifactory Repository Push') {
             artifactory.call(artifactoryServerId, artifactoryServerUrl, artifactoryRepositoryUrl, artifactoryBuildName, artifactoryProject, artifactoryCredentialId)
         }
-    }
+    } as Object
 }
 
 def nexusRepositoryPush(nexusServerUrl, nexusRepositoryName, nexusVersion, nexusProtocol, nexusCredentialId) {
@@ -85,5 +94,5 @@ def nexusRepositoryPush(nexusServerUrl, nexusRepositoryName, nexusVersion, nexus
         stage('Nexus Repository Push') {
             nexusRepository.call(nexusServerUrl, nexusRepositoryName, nexusVersion, nexusProtocol, nexusCredentialId)
         }
-    }
+    } as Object
 }
