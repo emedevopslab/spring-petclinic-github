@@ -2,7 +2,7 @@
 
 node {
 
-    def SONARQUBE_ENV = "sonarqube"
+    def SONARQUBE_ENV = "Sonarqube"
     def SONARQUBE_CREDENTIAL_ID = "sonar-jenkins-user"
 
     stage('Maven Build') {
@@ -19,7 +19,7 @@ node {
     }
 
     stage('SonarQube Analysis') {
-        sonarqube.call(SONARQUBE_ENV, SONARQUBE_CREDENTIAL_ID)xs
+        sonarqube.call(SONARQUBE_ENV, SONARQUBE_CREDENTIAL_ID)
     }
 
     stage("Maven Package") {
