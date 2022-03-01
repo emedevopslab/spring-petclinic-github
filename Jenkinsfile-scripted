@@ -1,9 +1,13 @@
 @Library("jenkins-libraries@main") _
 
 node {
-
     def SONARQUBE_ENV = "Sonarqube"
     def SONARQUBE_CREDENTIAL_ID = "sonar-jenkins-user"
+    def ARTIFACTORY_SERVER_ID = "artifactory-server-saas"
+    def ARTIFACTORY_SERVER_URL = "https://springpetclinictestpro.jfrog.io/"
+    def ARTIFACTORY_REPOSITORY_URL = "artifactory/example-repo-local/"
+    def ARTIFACTORY_BUILD_NAME = "artifactory/example-repo-local/"
+    def ARTIFACTORY_PROJECT = "spc"
     def ARTIFACTORY_CREDENTIAL_ID = "artifactory-jenkins-user"
 
     stage('Maven Build') {
@@ -12,22 +16,22 @@ node {
     }
 
     stage('Maven Test') {
-        //sh 'mvn test'
+        sh 'mvn test'
     }
 
     stage('JaCoCo Analysis') {
-        //jacoco(execPattern: 'target/jacoco.exec')
+        jacoco(execPattern: 'target/jacoco.exec')
     }
 
     stage('SonarQube Analysis') {
-        //sonarqube.call(SONARQUBE_ENV, SONARQUBE_CREDENTIAL_ID)
-    }
-
-    stage('Artifact Repository Push') {
-        artifactory.call('artifactory-server-saas', 'https://springpetclinictestpro.jfrog.io/', ARTIFACTORY_CREDENTIAL_ID, "artifactory/example-repo-local/", "springpetclinic", "spc")
+        sonarqube.call(SONARQUBE_ENV, SONARQUBE_CREDENTIAL_ID)
     }
 
     stage("Maven Package") {
         sh "mvn package -DskipTests=true"
+    }
+
+    stage('Artifact Repository Push') {
+        artifactory.call(ARTIFACTORY_SERVER_ID, ARTIFACTORY_SERVER_URL, ARTIFACTORY_REPOSITORY_URL, ARTIFACTORY_BUILD_NAME, ARTIFACTORY_PROJECT, ARTIFACTORY_CREDENTIAL_ID)
     }
 }
