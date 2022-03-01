@@ -9,6 +9,12 @@ node {
     def ARTIFACTORY_BUILD_NAME = "artifactory/example-repo-local/"
     def ARTIFACTORY_PROJECT = "spc"
     def ARTIFACTORY_CREDENTIAL_ID = "artifactory-jenkins-user"
+    def NEXUS_SERVER_URL = "10.3.1.6:8081"
+    def NEXUS_REPOSITORY_NAME = "emerasoft-maven-nexus-repo"
+    def NEXUS_VERSION = "nexus3"
+    def NEXUS_PROTOCOL = "http"
+    def NEXUS_CREDENTIAL_ID = "sonatype-jenkins-user"
+    def NEXUS_APPLICATION = "spring-petclinic"
 
     stage('Maven Build') {
         checkout scm
@@ -19,19 +25,35 @@ node {
         sh 'mvn test'
     }
 
-    stage('JaCoCo Analysis') {
-        jacoco(execPattern: 'target/jacoco.exec')
-    }
+    stage('Analysis Stage') {
+        parallel {
+            stage('JaCoCo Analysis') {
+                jacoco(execPattern: 'target/jacoco.exec')
+            }
 
-    stage('SonarQube Analysis') {
-        sonarqube.call(SONARQUBE_ENV, SONARQUBE_CREDENTIAL_ID)
-    }
+            stage('SonarQube Analysis') {
+                sonarqube.call(SONARQUBE_ENV, SONARQUBE_CREDENTIAL_ID)
+            }
 
-    stage("Maven Package") {
-        sh "mvn package -DskipTests=true"
+            stage("Nexus IQ Analysis") {
+                nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication(NEXUS_APPLICATION), iqStage: 'build', jobCredentialsId: ''
+            }
+
+            stage("Maven Package") {
+                sh "mvn package -DskipTests=true"
+            }
+        }
     }
 
     stage('Artifact Repository Push') {
-        artifactory.call(ARTIFACTORY_SERVER_ID, ARTIFACTORY_SERVER_URL, ARTIFACTORY_REPOSITORY_URL, ARTIFACTORY_BUILD_NAME, ARTIFACTORY_PROJECT, ARTIFACTORY_CREDENTIAL_ID)
+        parallel {
+            stage('Artifact Repository Push') {
+                artifactory.call(ARTIFACTORY_SERVER_ID, ARTIFACTORY_SERVER_URL, ARTIFACTORY_REPOSITORY_URL, ARTIFACTORY_BUILD_NAME, ARTIFACTORY_PROJECT, ARTIFACTORY_CREDENTIAL_ID)
+            }
+
+            stage('Nexus Repository Push') {
+                nexusRepository.call(NEXUS_SERVER_URL, NEXUS_REPOSITORY_NAME, NEXUS_VERSION, NEXUS_PROTOCOL, NEXUS_CREDENTIAL_ID)
+            }
+        }
     }
 }
