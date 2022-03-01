@@ -46,10 +46,6 @@ node {
         artifactRepositoryStagesMap.put("Nexus Repository Push", nexusRepositoryPush(NEXUS_SERVER_URL, NEXUS_REPOSITORY_NAME, NEXUS_VERSION, NEXUS_PROTOCOL, NEXUS_CREDENTIAL_ID))
         parallelOrSerialStages.call(runParallel, artifactRepositoryStagesMap)
     }
-
-
-    stage('Nexus Repository Push') {
-    }
 }
 
 def jaCoCoAnalysis() {
@@ -86,7 +82,7 @@ def artifactoryRepositoryPush(artifactoryServerId, artifactoryServerUrl, artifac
 
 def nexusRepositoryPush(nexusServerUrl, nexusRepositoryName, nexusVersion, nexusProtocol, nexusCredentialId) {
     return {
-        stage('Artifactory Repository Push') {
+        stage('Nexus Repository Push') {
             nexusRepository.call(nexusServerUrl, nexusRepositoryName, nexusVersion, nexusProtocol, nexusCredentialId)
         }
     } as Object
