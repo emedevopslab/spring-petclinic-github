@@ -1,13 +1,4 @@
-@Library("jenkins-libraries@main") _
-
 node {
-
-    def NEXUS_VERSION = "nexus3"
-    def NEXUS_PROTOCOL = "http"
-    def NEXUS_URL = "10.3.1.6:8081"
-    def NEXUS_REPOSITORY = "emerasoft-maven-nexus-repo"
-    def NEXUS_CREDENTIAL_ID = "sonatype-jenkins-user"
-    def SONAR_CREDENTIAL_ID = "sonar-jenkins-user"
 
     stage('Maven Build') {
         checkout scm
@@ -24,7 +15,7 @@ node {
 
     stage('SonarQube Analysis') {
         withSonarQubeEnv('Sonarqube') {
-            withCredentials([usernamePassword(credentialsId: $SONAR_CREDENTIAL_ID, usernameVariable: 'SONAR_USERNAME', passwordVariable: 'SONAR_PASSWORD')]) {
+            withCredentials([usernamePassword(credentialsId: 'sonar-jenkins-user', usernameVariable: 'SONAR_USERNAME', passwordVariable: 'SONAR_PASSWORD')]) {
                 sh "mvn clean verify sonar:sonar -Dsonar.login=$SONAR_USERNAME -Dsonar.password=$SONAR_PASSWORD"
             }
         }
