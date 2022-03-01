@@ -25,8 +25,8 @@ node {
         sh 'mvn test'
     }
 
-    stage('Analysis Stage') {
-        parallel {
+    stage('Analysis Stages') {
+        parallel "Analysis Stages": {
             stage('JaCoCo Analysis') {
                 jacoco(execPattern: 'target/jacoco.exec')
             }
@@ -35,18 +35,18 @@ node {
                 sonarqube.call(SONARQUBE_ENV, SONARQUBE_CREDENTIAL_ID)
             }
 
-            stage("Nexus IQ Analysis") {
+            stage('Nexus IQ Analysis') {
                 nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication(NEXUS_APPLICATION), iqStage: 'build', jobCredentialsId: ''
-            }
-
-            stage("Maven Package") {
-                sh "mvn package -DskipTests=true"
             }
         }
     }
 
+    stage('Maven Package') {
+        sh "mvn package -DskipTests=true"
+    }
+
     stage('Artifact Repository Push') {
-        parallel {
+        parallel "Artifact Repository Push": {
             stage('Artifact Repository Push') {
                 artifactory.call(ARTIFACTORY_SERVER_ID, ARTIFACTORY_SERVER_URL, ARTIFACTORY_REPOSITORY_URL, ARTIFACTORY_BUILD_NAME, ARTIFACTORY_PROJECT, ARTIFACTORY_CREDENTIAL_ID)
             }
