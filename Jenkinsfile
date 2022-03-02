@@ -46,12 +46,16 @@ pipeline {
                 }
                 stage('SonarQube Analysis') {
                     steps {
-                        sonarqube.call(SONARQUBE_ENV, SONARQUBE_CREDENTIAL_ID)
+                        script{
+                            sonarqube.call(SONARQUBE_ENV, SONARQUBE_CREDENTIAL_ID)
+                        }
                     }
                 }
                 stage("Nexus IQ Analysis") {
                     steps {
-                        nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication(NEXUS_APPLICATION), iqStage: 'build', jobCredentialsId: ''
+                        script {
+                            nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication(NEXUS_APPLICATION), iqStage: 'build', jobCredentialsId: ''
+                        }
                     }
                 }
             }
@@ -66,13 +70,17 @@ pipeline {
             parallel {
                 stage("Artifactory Repository Push") {
                     steps {
-                        artifactory.call(ARTIFACTORY_SERVER_ID, ARTIFACTORY_SERVER_URL, ARTIFACTORY_REPOSITORY_URL, ARTIFACTORY_BUILD_NAME, ARTIFACTORY_PROJECT, ARTIFACTORY_CREDENTIAL_ID)
+                        script {
+                            artifactory.call(ARTIFACTORY_SERVER_ID, ARTIFACTORY_SERVER_URL, ARTIFACTORY_REPOSITORY_URL, ARTIFACTORY_BUILD_NAME, ARTIFACTORY_PROJECT, ARTIFACTORY_CREDENTIAL_ID)
+                        }
                     }
                 }
 
                 stage("Nexus Repository Push") {
                     steps {
-                        nexusRepository.call(NEXUS_SERVER_URL, NEXUS_REPOSITORY_NAME, NEXUS_VERSION, NEXUS_PROTOCOL, NEXUS_CREDENTIAL_ID)
+                        script{
+                            nexusRepository.call(NEXUS_SERVER_URL, NEXUS_REPOSITORY_NAME, NEXUS_VERSION, NEXUS_PROTOCOL, NEXUS_CREDENTIAL_ID)
+                        }
                     }
                 }
             }
@@ -80,7 +88,9 @@ pipeline {
 
         stage("Okteto Deploy") {
             steps {
-                okteto.call(OKTETO_SERVER_URL, OKTETO_TOKEN, OKTETO_GITHUB_REPOSITORY_NAME, OKTETO_GITHUB_REPOSITORY_URL, OKTETO_DEPLOYMENT_NAME)
+                script{
+                    okteto.call(OKTETO_SERVER_URL, OKTETO_TOKEN, OKTETO_GITHUB_REPOSITORY_NAME, OKTETO_GITHUB_REPOSITORY_URL, OKTETO_DEPLOYMENT_NAME)
+                }
             }
         }
 
