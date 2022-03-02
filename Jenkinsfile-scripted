@@ -18,10 +18,10 @@ def NEXUS_PROTOCOL = "http"
 def NEXUS_CREDENTIAL_ID = "sonatype-jenkins-user"
 def NEXUS_APPLICATION = "spring-petclinic"
 def OKTETO_SERVER_URL = "https://cloud.okteto.com"
-def OKTETO_TOKEN = "joXe00ffVhLf6wDadoPatXkvLQrMJ2zpsR3HO20yZSi2GkpX"
 def OKTETO_GITHUB_REPOSITORY_NAME = "spring-petclinic-github"
 def OKTETO_GITHUB_REPOSITORY_URL = "https://github.com/adeganutti/spring-petclinic-github.git"
 def OKTETO_DEPLOYMENT_NAME = "spc"
+def OKTETO_CREDENTIAL_ID = "adeganutti-okteto-token"
 
 node {
     try {
@@ -54,7 +54,7 @@ node {
         }
 
         stage("Deploy") {
-            okteto.call(OKTETO_SERVER_URL, OKTETO_TOKEN, OKTETO_GITHUB_REPOSITORY_NAME, OKTETO_GITHUB_REPOSITORY_URL, OKTETO_DEPLOYMENT_NAME)
+            okteto.call(OKTETO_SERVER_URL, OKTETO_GITHUB_REPOSITORY_NAME, OKTETO_GITHUB_REPOSITORY_URL, OKTETO_DEPLOYMENT_NAME, OKTETO_CREDENTIAL_ID)
         }
     } catch (e) {
         throw e

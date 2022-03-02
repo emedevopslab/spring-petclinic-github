@@ -20,10 +20,10 @@ pipeline {
         NEXUS_CREDENTIAL_ID = "sonatype-jenkins-user"
         NEXUS_APPLICATION = "spring-petclinic"
         OKTETO_SERVER_URL = "https://cloud.okteto.com"
-        OKTETO_TOKEN = "joXe00ffVhLf6wDadoPatXkvLQrMJ2zpsR3HO20yZSi2GkpX"
         OKTETO_GITHUB_REPOSITORY_NAME = "spring-petclinic-github"
         OKTETO_GITHUB_REPOSITORY_URL = "https://github.com/adeganutti/spring-petclinic-github.git"
         OKTETO_DEPLOYMENT_NAME = "spc"
+        OKTETO_CREDENTIAL_ID = "adeganutti-okteto-token"
     }
 
     stages {
@@ -79,7 +79,7 @@ pipeline {
                 stage("Nexus Repository Push") {
                     steps {
                         script{
-                            nexusRepository.call(NEXUS_SERVER_URL, NEXUS_REPOSITORY_NAME, NEXUS_VERSION, NEXUS_PROTOCOL, NEXUS_CREDENTIAL_ID)
+                            nexusRepository.call(NEXUS_SERVER_URL, NEXUS_REPOSITORY_NAME, NEXUS_VERSION, NEXUS_PROTOCOL, NEXUS_CREDENTIAL_ID, OKTETO_CREDENTIAL_ID)
                         }
                     }
                 }
@@ -89,7 +89,7 @@ pipeline {
         stage("Okteto Deploy") {
             steps {
                 script{
-                    okteto.call(OKTETO_SERVER_URL, OKTETO_TOKEN, OKTETO_GITHUB_REPOSITORY_NAME, OKTETO_GITHUB_REPOSITORY_URL, OKTETO_DEPLOYMENT_NAME)
+                    okteto.call(OKTETO_SERVER_URL, OKTETO_GITHUB_REPOSITORY_NAME, OKTETO_GITHUB_REPOSITORY_URL, OKTETO_DEPLOYMENT_NAME, OKTETO_CREDENTIAL_ID)
                 }
             }
         }
