@@ -24,36 +24,42 @@ def OKTETO_GITHUB_REPOSITORY_URL = "https://github.com/adeganutti/spring-petclin
 def OKTETO_DEPLOYMENT_NAME = "spc"
 
 node {
-    stage('Maven Build') {
-        checkout scm
-        sh "mvn clean install"
-    }
+    try {
+        stage('Maven Build') {
+            checkout scm
+            sh "mvn clean install"
+        }
 
-    stage('Maven Test') {
-        sh 'mvn test'
-    }
+        stage('Maven Test') {
+            sh 'mvn test'
+        }
 
-    stage('Analysis') {
-        def analysisStagesMap = [:]
-        analysisStagesMap.put("JaCoCo Analysis", jaCoCoAnalysis())
-        analysisStagesMap.put("SonarQube Analysis", sonarQubeAnalysis(SONARQUBE_ENV, SONARQUBE_CREDENTIAL_ID))
-        analysisStagesMap.put("Nexus IQ Analysis", nexusIqAnalysis(NEXUS_APPLICATION))
-        parallelOrSerialStages.call(runParallel, analysisStagesMap)
-    }
+        stage('Analysis') {
+            def analysisStagesMap = [:]
+            analysisStagesMap.put("JaCoCo Analysis", jaCoCoAnalysis())
+            analysisStagesMap.put("SonarQube Analysis", sonarQubeAnalysis(SONARQUBE_ENV, SONARQUBE_CREDENTIAL_ID))
+            analysisStagesMap.put("Nexus IQ Analysis", nexusIqAnalysis(NEXUS_APPLICATION))
+            parallelOrSerialStages.call(runParallel, analysisStagesMap)
+        }
 
-    stage('Maven Package') {
-        sh "mvn package -DskipTests=true"
-    }
+        stage('Maven Package') {
+            sh "mvn package -DskipTests=true"
+        }
 
-    stage('Artifact Repository Push') {
-        def artifactRepositoryStagesMap = [:]
-        artifactRepositoryStagesMap.put("Artifactory Repository Push", artifactoryRepositoryPush(ARTIFACTORY_SERVER_ID, ARTIFACTORY_SERVER_URL, ARTIFACTORY_REPOSITORY_URL, ARTIFACTORY_BUILD_NAME, ARTIFACTORY_PROJECT, ARTIFACTORY_CREDENTIAL_ID))
-        artifactRepositoryStagesMap.put("Nexus Repository Push", nexusRepositoryPush(NEXUS_SERVER_URL, NEXUS_REPOSITORY_NAME, NEXUS_VERSION, NEXUS_PROTOCOL, NEXUS_CREDENTIAL_ID))
-        parallelOrSerialStages.call(runParallel, artifactRepositoryStagesMap)
-    }
+        stage('Artifact Repository Push') {
+            def artifactRepositoryStagesMap = [:]
+            artifactRepositoryStagesMap.put("Artifactory Repository Push", artifactoryRepositoryPush(ARTIFACTORY_SERVER_ID, ARTIFACTORY_SERVER_URL, ARTIFACTORY_REPOSITORY_URL, ARTIFACTORY_BUILD_NAME, ARTIFACTORY_PROJECT, ARTIFACTORY_CREDENTIAL_ID))
+            artifactRepositoryStagesMap.put("Nexus Repository Push", nexusRepositoryPush(NEXUS_SERVER_URL, NEXUS_REPOSITORY_NAME, NEXUS_VERSION, NEXUS_PROTOCOL, NEXUS_CREDENTIAL_ID))
+            parallelOrSerialStages.call(runParallel, artifactRepositoryStagesMap)
+        }
 
-    stage("Deploy") {
-        okteto.call(OKTETO_SERVER_URL, OKTETO_TOKEN, OKTETO_GITHUB_REPOSITORY_NAME, OKTETO_GITHUB_REPOSITORY_URL, OKTETO_DEPLOYMENT_NAME)
+        stage("Deploy") {
+            okteto.call(OKTETO_SERVER_URL, OKTETO_TOKEN, OKTETO_GITHUB_REPOSITORY_NAME, OKTETO_GITHUB_REPOSITORY_URL, OKTETO_DEPLOYMENT_NAME)
+        }
+    } catch (e) {
+        throw e
+    } finally {
+        junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
     }
 }
 

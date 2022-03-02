@@ -1,13 +1,29 @@
+//noinspection GroovyUnusedAssignment
+@Library("jenkins-libraries@main") _
+
 pipeline {
     agent any
 
     environment {
-            NEXUS_VERSION = "nexus3"
-            NEXUS_PROTOCOL = "http"
-            NEXUS_URL = "10.3.1.6:8081"
-            NEXUS_REPOSITORY = "emerasoft-maven-nexus-repo"
-            NEXUS_CREDENTIAL_ID = "sonatype-jenkins-user"
-            OKTETO_TOKEN = "joXe00ffVhLf6wDadoPatXkvLQrMJ2zpsR3HO20yZSi2GkpX"
+        SONARQUBE_ENV = "Sonarqube"
+        SONARQUBE_CREDENTIAL_ID = "sonar-jenkins-user"
+        ARTIFACTORY_SERVER_ID = "artifactory-server-saas"
+        ARTIFACTORY_SERVER_URL = "https://springpetclinictestpro.jfrog.io/"
+        ARTIFACTORY_REPOSITORY_URL = "artifactory/example-repo-local/"
+        ARTIFACTORY_BUILD_NAME = "springpetclinic"
+        ARTIFACTORY_PROJECT = "spc"
+        ARTIFACTORY_CREDENTIAL_ID = "artifactory-jenkins-user"
+        NEXUS_SERVER_URL = "10.3.1.6:8081"
+        NEXUS_REPOSITORY_NAME = "emerasoft-maven-nexus-repo"
+        NEXUS_VERSION = "nexus3"
+        NEXUS_PROTOCOL = "http"
+        NEXUS_CREDENTIAL_ID = "sonatype-jenkins-user"
+        NEXUS_APPLICATION = "spring-petclinic"
+        OKTETO_SERVER_URL = "https://cloud.okteto.com"
+        OKTETO_TOKEN = "joXe00ffVhLf6wDadoPatXkvLQrMJ2zpsR3HO20yZSi2GkpX"
+        OKTETO_GITHUB_REPOSITORY_NAME = "spring-petclinic-github"
+        OKTETO_GITHUB_REPOSITORY_URL = "https://github.com/adeganutti/spring-petclinic-github.git"
+        OKTETO_DEPLOYMENT_NAME = "spc"
     }
 
     stages {
@@ -21,7 +37,7 @@ pipeline {
                 sh 'mvn test'
             }
         }
-        stage('Analysis Stage') {
+        stage('Analysis') {
             parallel {
                 stage('JaCoCo Analysis') {
                     steps {
@@ -30,14 +46,12 @@ pipeline {
                 }
                 stage('SonarQube Analysis') {
                     steps {
-                        withSonarQubeEnv('Sonarqube') {
-                            sh "mvn clean verify sonar:sonar -Dsonar.login=jenkins -Dsonar.password=jenkins"
-                        }
+                        sonarqube.call(SONARQUBE_ENV, SONARQUBE_CREDENTIAL_ID)
                     }
                 }
                 stage("Nexus IQ Analysis") {
                     steps {
-                        nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication('spring-petclinic'), iqStage: 'build', jobCredentialsId: ''
+                        nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication(NEXUS_APPLICATION), iqStage: 'build', jobCredentialsId: ''
                     }
                 }
             }
@@ -52,88 +66,13 @@ pipeline {
             parallel {
                 stage("Artifactory Repository Push") {
                     steps {
-                        script {
-                            rtServer(
-                                    id: 'artifactory-server-saas',
-                                    url: 'https://springpetclinictestpro.jfrog.io/',
-                                    // If you're using username and password:
-                                    username: 'jenkins',
-                                    password: 'Admin1234',
-                                    // If you're using Credentials ID:
-                                    //credentialsId: 'ccrreeddeennttiiaall',
-                                    // If Jenkins is configured to use an http proxy, you can bypass the proxy when using this Artifactory server:
-                                    bypassProxy: true,
-                                    // Configure the connection timeout (in seconds).
-                                    // The default value (if not configured) is 300 seconds:
-                                    timeout: 300
-                            )
-
-                            pom = readMavenPom file: "pom.xml"
-                            filesByGlob = findFiles(glob: "target/*.${pom.packaging}")
-                            echo "${filesByGlob[0].name} ${filesByGlob[0].path} ${filesByGlob[0].directory} ${filesByGlob[0].length} ${filesByGlob[0].lastModified}"
-                            artifactPath = filesByGlob[0].path
-                            artifactExists = fileExists artifactPath
-                            if (artifactExists) {
-                                echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}"
-                            }
-
-                            rtUpload(
-                                    serverId: 'artifactory-server-saas',
-                                    spec: '''{
-                                      "files": [
-                                        {
-                                          "pattern": "target/*.jar",
-                                          "target": "artifactory/example-repo-local/"
-                                        }
-                                     ]
-                                }''',
-
-                                    // Optional - Associate the uploaded files with the following custom build name and build number,
-                                    // as build artifacts.
-                                    // If not set, the files will be associated with the default build name and build number (i.e the
-                                    // the Jenkins job name and number).
-                                    buildName: 'springpetclinic',
-                                    //buildNumber: '42',
-                                    // Optional - Only if this build is associated with a project in Artifactory, set the project key as follows.
-                                    project: 'spc'
-                            )
-                        }
+                        artifactory.call(ARTIFACTORY_SERVER_ID, ARTIFACTORY_SERVER_URL, ARTIFACTORY_REPOSITORY_URL, ARTIFACTORY_BUILD_NAME, ARTIFACTORY_PROJECT, ARTIFACTORY_CREDENTIAL_ID)
                     }
                 }
 
                 stage("Nexus Repository Push") {
                     steps {
-                        script {
-                            pom = readMavenPom file: "pom.xml"
-                            filesByGlob = findFiles(glob: "target/*.${pom.packaging}")
-                            echo "${filesByGlob[0].name} ${filesByGlob[0].path} ${filesByGlob[0].directory} ${filesByGlob[0].length} ${filesByGlob[0].lastModified}"
-                            artifactPath = filesByGlob[0].path
-                            artifactExists = fileExists artifactPath
-                            if (artifactExists) {
-                                echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}"
-                                nexusArtifactUploader(
-                                        nexusVersion: NEXUS_VERSION,
-                                        protocol: NEXUS_PROTOCOL,
-                                        nexusUrl: NEXUS_URL,
-                                        groupId: pom.groupId,
-                                        version: pom.version,
-                                        repository: NEXUS_REPOSITORY,
-                                        credentialsId: NEXUS_CREDENTIAL_ID,
-                                        artifacts: [
-                                                [artifactId: pom.artifactId,
-                                                 classifier: '',
-                                                 file      : artifactPath,
-                                                 type      : pom.packaging],
-                                                [artifactId: pom.artifactId,
-                                                 classifier: '',
-                                                 file      : "pom.xml",
-                                                 type      : "pom"]
-                                        ]
-                                )
-                            } else {
-                                error "*** File: ${artifactPath}, could not be found"
-                            }
-                        }
+                        nexusRepository.call(NEXUS_SERVER_URL, NEXUS_REPOSITORY_NAME, NEXUS_VERSION, NEXUS_PROTOCOL, NEXUS_CREDENTIAL_ID)
                     }
                 }
             }
@@ -141,11 +80,7 @@ pipeline {
 
         stage("Okteto Deploy") {
             steps {
-                sh "okteto context use https://cloud.okteto.com --token $OKTETO_TOKEN"
-                sh "okteto kubeconfig"
-                sh "okteto pipeline destroy -p spring-petclinic-github -w -l info"
-                sh "okteto pipeline deploy -r https://github.com/adeganutti/spring-petclinic-github.git -b main -w -l info"
-                sh "kubectl rollout restart deployment spc"
+                okteto.call(OKTETO_SERVER_URL, OKTETO_TOKEN, OKTETO_GITHUB_REPOSITORY_NAME, OKTETO_GITHUB_REPOSITORY_URL, OKTETO_DEPLOYMENT_NAME)
             }
         }
 
