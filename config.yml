@@ -40,4 +40,7 @@ env:
     credential:
       id: adeganutti-okteto-token
 run:
-  parallel: true
+  stages:
+    parallel: true
+  log:
+    level: info
