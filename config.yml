@@ -41,7 +41,7 @@ env:
       id: adeganutti-okteto-token
   github:
     repository:
-      url: https://github.com/adeganutti/spring-petclinic-github.git
+      url: https://github.com/adeganutti/spring-petclinic-github
     credential:
       id: adeganutti-github-token
 run:
