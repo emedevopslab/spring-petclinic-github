@@ -6,8 +6,11 @@ def run
 
 node {
     try {
-        stage('Checkout & Setup') {
+        stage('Checkout') {
             checkout scm
+        }
+
+        stage('Setup') {
             def cfg = yamlFile(params.CONFIGURATION_FILE)
             env = cfg.env
             run = cfg.run
