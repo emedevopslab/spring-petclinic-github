@@ -29,7 +29,7 @@ node {
             analysisStagesMap.put("JaCoCo Analysis", jaCoCoAnalysis())
             analysisStagesMap.put("SonarQube Analysis", sonarQubeAnalysis(env.sonarqube.env.name, env.sonarqube.credential.id))
             analysisStagesMap.put("Nexus IQ Analysis", nexusIqAnalysis(env.nexus.application.name))
-            parallelOrSerialStages.call(run.parallel, analysisStagesMap)
+            parallelOrSerialStages.call(run.stage.parallel, analysisStagesMap)
         }
 
         stage('Maven Package') {
@@ -40,7 +40,7 @@ node {
             def artifactRepositoryStagesMap = [:]
             artifactRepositoryStagesMap.put("Artifactory Repository Push", artifactoryRepositoryPush(env.artifactory.server.id, env.artifactory.server.url, env.artifactory.repository.url, env.artifactory.build.name, env.artifactory.project.name, env.artifactory.credential.id))
             artifactRepositoryStagesMap.put("Nexus Repository Push", nexusRepositoryPush(env.nexus.server.url, env.nexus.repository.name, env.nexus.version.name, env.nexus.protocol.name, env.nexus.credential.id))
-            parallelOrSerialStages.call(run.parallel, artifactRepositoryStagesMap)
+            parallelOrSerialStages.call(run.stage.parallel, artifactRepositoryStagesMap)
         }
 
         stage("Deploy") {
