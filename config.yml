@@ -39,6 +39,11 @@ env:
       name: spc
     credential:
       id: adeganutti-okteto-token
+  github:
+    repository:
+      url: https://github.com/adeganutti/spring-petclinic-github.git
+    credential:
+      id: adeganutti-github-token
 run:
   stage:
     parallel: true

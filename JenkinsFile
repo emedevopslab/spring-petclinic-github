@@ -1,0 +1,18 @@
+//noinspection GroovyUnusedAssignment
+@Library("jenkins-libraries@main") _
+
+def pipeline() {
+    stage('Maven Build') {
+        sh "mvn clean install"
+    }
+
+    stage('Maven Test') {
+        sh 'mvn test'
+    }
+
+    stage('Maven Package') {
+        sh "mvn package -DskipTests=true"
+    }
+}
+
+return this
