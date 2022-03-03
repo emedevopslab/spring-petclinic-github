@@ -16,12 +16,15 @@ node {
             run = cfg.run
 
             println "Env Params: ${env}"
-            println "Run Params: ${run}"
+            println "Env Params: ${env}"
         }
 
-        stage('Project') {
-            def project = loadFromGitHub(env.github.repository.url, "blob/main/JenkinsFile", env.github.credential.id)
-            project.pipeline()
+        stage('Maven Build') {
+            sh "mvn clean install"
+        }
+
+        stage('Maven Test') {
+            sh 'mvn test'
         }
 
         stage('Analysis') {
@@ -30,6 +33,10 @@ node {
             analysisStagesMap.put("SonarQube Analysis", sonarQubeAnalysis(env.sonarqube.env.name, env.sonarqube.credential.id))
             analysisStagesMap.put("Nexus IQ Analysis", nexusIqAnalysis(env.nexus.application.name))
             parallelOrSerialStages.call(run.stage.parallel, analysisStagesMap)
+        }
+
+        stage('Maven Package') {
+            sh "mvn package -DskipTests=true"
         }
 
         stage('Artifact Repository Push') {
