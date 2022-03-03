@@ -16,7 +16,7 @@ node {
             run = cfg.run
 
             println "Env Params: ${env}"
-            println "Env Params: ${env}"
+            println "Run Params: ${run}"
         }
 
         stage('Maven Build') {
