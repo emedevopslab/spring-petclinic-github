@@ -7,13 +7,13 @@ def run
 node {
     try {
         stage('Setup') {
+            checkout scm
             def cfg = yamlFile(params.CONFIGURATION_FILE)
             env = cfg.env
             run = cfg.run
         }
 
         stage('Maven Build') {
-            checkout scm
             sh "mvn clean install"
         }
 
