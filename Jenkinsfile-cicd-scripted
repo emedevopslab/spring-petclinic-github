@@ -17,7 +17,7 @@ node {
         }
 
         stage('Project') {
-            def project = loadFromGitHub(env.github.repository.url, "JenkinsFile", env.github.credential.id)
+            def project = loadFromGitHub(env.github.repository.url, "blob/main/JenkinsFile", env.github.credential.id)
             project.pipeline()
         }
 
