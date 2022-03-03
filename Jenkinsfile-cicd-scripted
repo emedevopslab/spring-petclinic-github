@@ -1,30 +1,17 @@
 //noinspection GroovyUnusedAssignment
 @Library("jenkins-libraries@main") _
 
-def runParallel = true
-
-def SONARQUBE_ENV = "Sonarqube"
-def SONARQUBE_CREDENTIAL_ID = "sonar-jenkins-user"
-def ARTIFACTORY_SERVER_ID = "artifactory-server-saas"
-def ARTIFACTORY_SERVER_URL = "https://springpetclinictestpro.jfrog.io/"
-def ARTIFACTORY_REPOSITORY_URL = "artifactory/example-repo-local/"
-def ARTIFACTORY_BUILD_NAME = "springpetclinic"
-def ARTIFACTORY_PROJECT = "spc"
-def ARTIFACTORY_CREDENTIAL_ID = "artifactory-jenkins-user"
-def NEXUS_SERVER_URL = "10.3.1.6:8081"
-def NEXUS_REPOSITORY_NAME = "emerasoft-maven-nexus-repo"
-def NEXUS_VERSION = "nexus3"
-def NEXUS_PROTOCOL = "http"
-def NEXUS_CREDENTIAL_ID = "sonatype-jenkins-user"
-def NEXUS_APPLICATION = "spring-petclinic"
-def OKTETO_SERVER_URL = "https://cloud.okteto.com"
-def OKTETO_GITHUB_REPOSITORY_NAME = "spring-petclinic-github"
-def OKTETO_GITHUB_REPOSITORY_URL = "https://github.com/adeganutti/spring-petclinic-github.git"
-def OKTETO_DEPLOYMENT_NAME = "spc"
-def OKTETO_CREDENTIAL_ID = "adeganutti-okteto-token"
+def env
+def run
 
 node {
     try {
+        stage('Setup') {
+            def cfg = yamlFile(params.CONFIGURATION_FILE)
+            env = cfg.env
+            run = cfg.run
+        }
+
         stage('Maven Build') {
             checkout scm
             sh "mvn clean install"
@@ -37,8 +24,8 @@ node {
         stage('Analysis') {
             def analysisStagesMap = [:]
             analysisStagesMap.put("JaCoCo Analysis", jaCoCoAnalysis())
-            analysisStagesMap.put("SonarQube Analysis", sonarQubeAnalysis(SONARQUBE_ENV, SONARQUBE_CREDENTIAL_ID))
-            analysisStagesMap.put("Nexus IQ Analysis", nexusIqAnalysis(NEXUS_APPLICATION))
+            analysisStagesMap.put("SonarQube Analysis", sonarQubeAnalysis(env.sonarqube.env.name, env.sonarqube.credential.id))
+            analysisStagesMap.put("Nexus IQ Analysis", nexusIqAnalysis(env.nexus.application.name))
             parallelOrSerialStages.call(runParallel, analysisStagesMap)
         }
 
@@ -48,13 +35,13 @@ node {
 
         stage('Artifact Repository Push') {
             def artifactRepositoryStagesMap = [:]
-            artifactRepositoryStagesMap.put("Artifactory Repository Push", artifactoryRepositoryPush(ARTIFACTORY_SERVER_ID, ARTIFACTORY_SERVER_URL, ARTIFACTORY_REPOSITORY_URL, ARTIFACTORY_BUILD_NAME, ARTIFACTORY_PROJECT, ARTIFACTORY_CREDENTIAL_ID))
-            artifactRepositoryStagesMap.put("Nexus Repository Push", nexusRepositoryPush(NEXUS_SERVER_URL, NEXUS_REPOSITORY_NAME, NEXUS_VERSION, NEXUS_PROTOCOL, NEXUS_CREDENTIAL_ID))
+            artifactRepositoryStagesMap.put("Artifactory Repository Push", artifactoryRepositoryPush(env.artifactory.server.id, env.artifactory.server.url, env.artifactory.repository.url, env.artifactory.build.name, env.artifactory.project.name, env.artifactory.credential.id))
+            artifactRepositoryStagesMap.put("Nexus Repository Push", nexusRepositoryPush(env.nexus.server.url, env.nexus.repository.name, env.nexus.version.name, env.nexus.protocol.name, env.nexus.credential.id))
             parallelOrSerialStages.call(runParallel, artifactRepositoryStagesMap)
         }
 
         stage("Deploy") {
-            okteto.call(OKTETO_SERVER_URL, OKTETO_GITHUB_REPOSITORY_NAME, OKTETO_GITHUB_REPOSITORY_URL, OKTETO_DEPLOYMENT_NAME, OKTETO_CREDENTIAL_ID)
+            okteto.call(env.okteto.server.url, env.okteto.repository.name, env.okteto.repository.url, env.okteto.deployment.name, env.okteto.credential.id)
         }
     } catch (e) {
         throw e
@@ -102,4 +89,3 @@ def nexusRepositoryPush(nexusServerUrl, nexusRepositoryName, nexusVersion, nexus
         }
     } as Object
 }
-

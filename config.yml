@@ -1,0 +1,43 @@
+env:
+  sonarqube:
+    env:
+      name: Sonarqube
+    credential:
+      id: sonar-jenkins-user
+  artifactory:
+    server:
+      id: artifactory-server-saa
+      url: https://springpetclinictestpro.jfrog.io/
+    repository:
+      url: artifactory/example-repo-local/
+    build:
+      name: springpetclinic
+    project:
+      name: spc
+    credential:
+      id: artifactory-jenkins-user
+  nexus:
+    server:
+      url: 10.3.1.6:8081
+    repository:
+      name: emerasoft-maven-nexus-repo
+    version:
+      name: nexus3
+    protocol:
+      name: http
+    application:
+      name: spring-petclinic
+    credential:
+      id: sonatype-jenkins-user
+  okteto:
+    server:
+      url: https://cloud.okteto.com
+    repository:
+      name: spring-petclinic-github
+      url: https://github.com/adeganutti/spring-petclinic-github.git
+    deployment:
+      name: spc
+    credential:
+      id: adeganutti-okteto-token
+run:
+  parallel: true
