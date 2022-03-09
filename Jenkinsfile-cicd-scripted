@@ -26,7 +26,7 @@ node {
             sh "mvn clean install"
         }
 
-        if (stg) {
+        if (stg.test) {
             stage('Maven Test') {
                 sh 'mvn test'
             }
@@ -34,13 +34,13 @@ node {
 
         stage('Analysis') {
             def analysisStagesMap = [:]
-            if (stg.jacoco) {
+            if (stg.analysis.jacoco) {
                 analysisStagesMap.put("JaCoCo Analysis", jaCoCoAnalysis())
             }
-            if (stg.sonarqube) {
+            if (stg.analysis.sonarqube) {
                 analysisStagesMap.put("SonarQube Analysis", sonarQubeAnalysis(env.sonarqube.env.name, env.sonarqube.credential.id))
             }
-            if (stg.nexusiq) {
+            if (stg.analysis.nexusiq) {
                 analysisStagesMap.put("Nexus IQ Analysis", nexusIqAnalysis(env.nexus.application.name))
             }
             parallelOrSerialStages.call(run.stage.parallel, analysisStagesMap)
@@ -52,10 +52,10 @@ node {
 
         stage('Artifact Push') {
             def artifactRepositoryStagesMap = [:]
-            if (stg.artifactory) {
+            if (stg.artifact.artifactory) {
                 artifactRepositoryStagesMap.put("Artifactory Push", artifactoryRepositoryPush(env.artifactory.server.id, env.artifactory.server.url, env.artifactory.repository.url, env.artifactory.build.name, env.artifactory.project.name, env.artifactory.credential.id))
             }
-            if (stg.nexus) {
+            if (stg.artifact.nexus) {
                 artifactRepositoryStagesMap.put("Nexus Push", nexusRepositoryPush(env.nexus.server.url, env.nexus.repository.name, env.nexus.version.name, env.nexus.protocol.name, env.nexus.credential.id))
             }
             parallelOrSerialStages.call(run.stage.parallel, artifactRepositoryStagesMap)

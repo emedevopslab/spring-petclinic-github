@@ -50,12 +50,12 @@ run:
   log:
     level: info
 stg:
-  maven-test: true
+  test: true
   analysis:
     jacoco: true
     sonarqube: true
     nexusiq: true
-  artifact--push:
+  artifact:
     artifactory: true
     nexus: true
   deploy: true
