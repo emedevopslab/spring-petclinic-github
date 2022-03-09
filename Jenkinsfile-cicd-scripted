@@ -3,6 +3,7 @@
 
 def env
 def run
+def stg
 
 node {
     try {
@@ -14,24 +15,34 @@ node {
             def cfg = yamlFile(params.CONFIGURATION_FILE)
             env = cfg.env
             run = cfg.run
+            stg = cfg.stg
 
             println "Env Params: ${env}"
             println "Run Params: ${run}"
+            println "Stg Params: ${stg}"
         }
 
         stage('Maven Build') {
             sh "mvn clean install"
         }
 
-        stage('Maven Test') {
-            sh 'mvn test'
+        if (stg) {
+            stage('Maven Test') {
+                sh 'mvn test'
+            }
         }
 
         stage('Analysis') {
             def analysisStagesMap = [:]
-            analysisStagesMap.put("JaCoCo Analysis", jaCoCoAnalysis())
-            analysisStagesMap.put("SonarQube Analysis", sonarQubeAnalysis(env.sonarqube.env.name, env.sonarqube.credential.id))
-            analysisStagesMap.put("Nexus IQ Analysis", nexusIqAnalysis(env.nexus.application.name))
+            if (stg.jacoco) {
+                analysisStagesMap.put("JaCoCo Analysis", jaCoCoAnalysis())
+            }
+            if (stg.sonarqube) {
+                analysisStagesMap.put("SonarQube Analysis", sonarQubeAnalysis(env.sonarqube.env.name, env.sonarqube.credential.id))
+            }
+            if (stg.nexusiq) {
+                analysisStagesMap.put("Nexus IQ Analysis", nexusIqAnalysis(env.nexus.application.name))
+            }
             parallelOrSerialStages.call(run.stage.parallel, analysisStagesMap)
         }
 
@@ -39,15 +50,20 @@ node {
             sh "mvn package -DskipTests=true"
         }
 
-        stage('Artifact Repository Push') {
+        stage('Artifact Push') {
             def artifactRepositoryStagesMap = [:]
-            artifactRepositoryStagesMap.put("Artifactory Repository Push", artifactoryRepositoryPush(env.artifactory.server.id, env.artifactory.server.url, env.artifactory.repository.url, env.artifactory.build.name, env.artifactory.project.name, env.artifactory.credential.id))
-            artifactRepositoryStagesMap.put("Nexus Repository Push", nexusRepositoryPush(env.nexus.server.url, env.nexus.repository.name, env.nexus.version.name, env.nexus.protocol.name, env.nexus.credential.id))
+            if (stg.artifactory) {
+                artifactRepositoryStagesMap.put("Artifactory Push", artifactoryRepositoryPush(env.artifactory.server.id, env.artifactory.server.url, env.artifactory.repository.url, env.artifactory.build.name, env.artifactory.project.name, env.artifactory.credential.id))
+            }
+            if (stg.nexus) {
+                artifactRepositoryStagesMap.put("Nexus Push", nexusRepositoryPush(env.nexus.server.url, env.nexus.repository.name, env.nexus.version.name, env.nexus.protocol.name, env.nexus.credential.id))
+            }
             parallelOrSerialStages.call(run.stage.parallel, artifactRepositoryStagesMap)
         }
-
-        stage("Deploy") {
-            okteto.call(env.okteto.server.url, env.okteto.repository.name, env.okteto.repository.url, env.okteto.deployment.name, env.okteto.credential.id)
+        if (stg.deploy) {
+            stage("Deploy") {
+                okteto.call(env.okteto.server.url, env.okteto.repository.name, env.okteto.repository.url, env.okteto.deployment.name, env.okteto.credential.id)
+            }
         }
     } catch (e) {
         throw e

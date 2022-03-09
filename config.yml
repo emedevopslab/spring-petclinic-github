@@ -49,3 +49,13 @@ run:
     parallel: true
   log:
     level: info
+stg:
+  maven-test: true
+  analysis:
+    jacoco: true
+    sonarqube: true
+    nexusiq: true
+  artifact--push:
+    artifactory: true
+    nexus: true
+  deploy: true
