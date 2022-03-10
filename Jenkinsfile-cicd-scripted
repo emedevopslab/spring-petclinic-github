@@ -50,15 +50,17 @@ node {
             sh "mvn package -DskipTests=true"
         }
 
-        stage('Artifact Push') {
-            def artifactRepositoryStagesMap = [:]
-            if (stg.artifact.artifactory) {
-                artifactRepositoryStagesMap.put("Artifactory Push", artifactoryRepositoryPush(env.artifactory.server.id, env.artifactory.server.url, env.artifactory.repository.url, env.artifactory.build.name, env.artifactory.project.name, env.artifactory.credential.id))
+        if(stg.artifact.artifactory || stg.artifact.nexus) {
+            stage('Artifact Push') {
+                def artifactRepositoryStagesMap = [:]
+                if (stg.artifact.artifactory) {
+                    artifactRepositoryStagesMap.put("Artifactory Push", artifactoryRepositoryPush(env.artifactory.server.id, env.artifactory.server.url, env.artifactory.repository.url, env.artifactory.build.name, env.artifactory.project.name, env.artifactory.credential.id))
+                }
+                if (stg.artifact.nexus) {
+                    artifactRepositoryStagesMap.put("Nexus Push", nexusRepositoryPush(env.nexus.server.url, env.nexus.repository.name, env.nexus.version.name, env.nexus.protocol.name, env.nexus.credential.id))
+                }
+                parallelOrSerialStages.call(run.stage.parallel, artifactRepositoryStagesMap)
             }
-            if (stg.artifact.nexus) {
-                artifactRepositoryStagesMap.put("Nexus Push", nexusRepositoryPush(env.nexus.server.url, env.nexus.repository.name, env.nexus.version.name, env.nexus.protocol.name, env.nexus.credential.id))
-            }
-            parallelOrSerialStages.call(run.stage.parallel, artifactRepositoryStagesMap)
         }
         if (stg.deploy) {
             stage("Deploy") {
