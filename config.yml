@@ -55,6 +55,7 @@ stg:
     jacoco: true
     sonarqube: true
     nexusiq: true
+    yagaan: false
   artifact:
     artifactory: true
     nexus: true

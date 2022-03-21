@@ -23,7 +23,7 @@ node {
         }
 
         stage('Maven Build') {
-            sh "mvn clean install"
+            sh "mvn clean install -DskipTests=true"
         }
 
         if (stg.test) {
@@ -42,6 +42,9 @@ node {
             }
             if (stg.analysis.nexusiq) {
                 analysisStagesMap.put("Nexus IQ Analysis", nexusIqAnalysis(env.nexus.application.name))
+            }
+            if (stg.analysis.yagaan) {
+                analysisStagesMap.put("Yagaan Analysis", yagaanAnalysis())
             }
             parallelOrSerialStages.call(run.stage.parallel, analysisStagesMap)
         }
@@ -94,6 +97,14 @@ def nexusIqAnalysis(nexusApplication) {
     return {
         stage('Nexus IQ Analysis') {
             nexusPolicyEvaluation advancedProperties: '', enableDebugLogging: false, failBuildOnNetworkError: false, iqApplication: selectedApplication(nexusApplication), iqStage: 'build', jobCredentialsId: ''
+        }
+    } as Object
+}
+
+def yagaanAnalysis() {
+    return {
+        stage('Yagaan Analysis') {
+            sh "/var/lib/jenkins/workspace/yag-scanner/bin/yag-scanner -t 6684e5faf948eb6d2d66a43fe537956627dbbb38 /var/lib/jenkins/workspace/spring-petclinic_cicd-scripted_gitlab"
         }
     } as Object
 }
