@@ -17,7 +17,7 @@
   <properties>
 
     <!-- Generic properties -->
-    <SPC_VERSION>1.2</SPC_VERSION>
+    <SPC_VERSION>1.3</SPC_VERSION>
 
     <java.version>1.8</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
