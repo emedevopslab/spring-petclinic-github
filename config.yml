@@ -57,6 +57,6 @@ stg:
     nexusiq: true
     yagaan: false
   artifact:
-    artifactory: true
+    artifactory: false
     nexus: true
   deploy: true
