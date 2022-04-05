@@ -43,7 +43,7 @@ env:
     repository:
       url: https://github.com/adeganutti/spring-petclinic-github
     credential:
-      id: adeganutti-github-token
+      id: emedevopslab-github-token
 run:
   stage:
     parallel: true
