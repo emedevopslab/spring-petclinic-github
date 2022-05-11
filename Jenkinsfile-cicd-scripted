@@ -120,7 +120,7 @@ def artifactoryRepositoryPush(artifactoryServerId, artifactoryServerUrl, artifac
 def nexusRepositoryPush(nexusServerUrl, nexusRepositoryName, nexusVersion, nexusProtocol, nexusCredentialId) {
     return {
         stage('Nexus Repository Push') {
-            nexusRepository.call(nexusServerUrl, nexusRepositoryName, nexusVersion, nexusProtocol, nexusCredentialId)
+            nexusRepository.push(nexusServerUrl, nexusRepositoryName, nexusVersion, nexusProtocol, nexusCredentialId)
         }
     } as Object
 }
